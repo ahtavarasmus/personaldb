@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>home</title>
+    </head>
+    <body>
+        <form action="/reminder/new" method="POST">
+            <h3>Create a reminder</h3>
+            <label for="message">Message</label>
+            <input type="text" name="message" id="message">
+            <label for="time">Time</label>
+            <input type="text" name="time" id="time">
+            <button type="submit">Add</button>
+        </form>
+        <br>
+        <br>
+        {% for reminder in reminders %}
+        <div>{{reminder.time}} - {{reminder.message}}</div>
+        {% endfor %}
+    </body>
+
+</html>
