@@ -1,9 +1,11 @@
-from flask import Flask, render_template, request, session
+from flask import Flask, render_template, request, session, url_for
+import requests
 from pydantic import ValidationError
 import json
 from reminder import Reminder
 from redis_om import Migrator
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "asdfasdfa"
@@ -23,15 +25,11 @@ def build_results(reminders):
 # creates new reminder
 @app.route("/reminder/new",methods=['POST'])
 def create_reminder():
-    #new_message = request.form['message']
-    #msg_time = request.form['time']
-    # date format "7/2/23 0:20"
-    #reminder_json = json.dumps({"message": new_message,"time":msg_time,"call":True})
-
     try:
-        #print(reminder_json)
+        print(request.json)
         new_reminder = Reminder(**request.json)
         new_reminder.save()
+        print(new_reminder.pk)
         return new_reminder.pk
 
     except ValidationError as e:
@@ -42,25 +40,22 @@ def create_reminder():
 @app.route("/",methods=['GET','POST'])
 def home():
 
-    if 'reminders' not in session:
-        session['reminders'] = all_reminders()
-    reminders = session['reminders']
+    reminders = all_reminders()
 
     if request.method == 'POST':
-        reminders = all_reminders()
-        if request.form['time_point'] == 'today':
-            reminders = today()
-        elif request.form['time_point'] == 'now':
-            reminders = now()
-        session['reminders'] = reminders
+        msg = request.form['message']
+        time = request.form['time']
+        reminder_json = json.dumps({"message":msg, "time":time})
+        primary_key = requests.post(
+                'http://127.0.0.1:5000/reminder/new',json=reminder_json)
 
     return render_template("index.html",reminders=reminders)
 
 
 # gets all the reminders scheduler for today
 def today():
-    todays_date = datetime.now().day
-    reminders = Reminder.find(turn_to_datetime(Reminder.time).day == todays_date).all()
+    reminders = Reminder.find(
+            turn_to_datetime(Reminder.time).day == datetime.now().day).all()
     return build_results(reminders)
 
 
@@ -78,4 +73,6 @@ def now():
 def all_reminders():
     reminders = Reminder.find().all()
     return build_results(reminders)
+
+
 Migrator().run()

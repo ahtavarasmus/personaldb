@@ -4,7 +4,7 @@
         <title>home</title>
     </head>
     <body>
-        <form action="/reminder/new" method="POST">
+        <form action="/" method="POST">
             <h3>Create a reminder</h3>
             <label for="message">Message</label>
             <input type="text" name="message" id="message">
@@ -15,7 +15,7 @@
         <br>
         <br>
         {% for reminder in reminders %}
-        <div>{{reminder.time}} - {{reminder.message}}</div>
+        <div>{{reminder["time"]}} - {{reminder["message"]}}</div>
         {% endfor %}
     </body>
 
