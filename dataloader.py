@@ -1,5 +1,6 @@
 import json
 import requests
+from datetime import datetime
 
 with open('data/reminders.json', encoding='utf-8') as f:
     reminders = json.loads(f.read())
