@@ -1,9 +1,9 @@
 from redis_om import (Field,JsonModel)
-from datetime import datetime
+import datetime
 
 class Reminder(JsonModel):
     message: str = Field(index=True)
-    time: str = Field(index=True)
+    time: datetime.datetime = Field(index=True)
 
 
 

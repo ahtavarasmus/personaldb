@@ -42,7 +42,7 @@ def create_reminder():
 @app.route("/",methods=['GET','POST'])
 def home():
 
-    reminders = all_reminders()
+    reminders = today() 
 
     if request.method == 'POST':
         if "today" in request.form:
@@ -53,12 +53,10 @@ def home():
             reminders = this_hour()
         else:
             msg = request.form['message']
-            time = request.form['time']
-            print(time)
-            reminder_json = json.dumps({"message":msg,"time":time})
-            data = json.loads(reminder_json)
-            new_reminder = Reminder(**data)
+            time = datetime.strptime(request.form['time'], "%d/%m/%y %H:%M")
+            new_reminder = Reminder(user='rasmus',message=msg,time=time)
             new_reminder.save()
+            print("DAY:",new_reminder.time.day)
             print(new_reminder.pk)
 
             #primary_key = requests.post(
@@ -70,8 +68,19 @@ def home():
 
 # gets all the reminders scheduler for today
 def today():
-    reminders = Reminder.find(
-            Reminder.time.day == datetime.now().day).all()
+    start = datetime(
+            datetime.now().year,
+            datetime.now().month,
+            datetime.now().day,0,0,0)
+    end = datetime(
+            datetime.now().year,
+            datetime.now().month,
+            datetime.now().day,23,59,59)
+
+
+
+    
+    reminders = Reminder.find(Reminder.time < end and Reminder).all()
     return build_results(reminders)
 
 
@@ -99,8 +108,9 @@ def this_minute():
 
 
 def all_reminders():
+
     reminders = Reminder.find().all()
-    print(reminders)
+
     return build_results(reminders)
 
 
