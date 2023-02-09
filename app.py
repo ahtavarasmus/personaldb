@@ -80,7 +80,7 @@ def today():
 
 
     
-    reminders = Reminder.find(Reminder.time < end and Reminder).all()
+    reminders = Reminder.find(Reminder.time >= start and Reminder.time <= end).all()
     return build_results(reminders)
 
 
