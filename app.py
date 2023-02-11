@@ -1,19 +1,37 @@
+import celery
 from flask import Flask, render_template, request, session, url_for
-from redis.cluster import READ_COMMANDS
-import requests
-from pydantic import ValidationError
-import json
 from reminder import Reminder
 from redis_om import Migrator
 from datetime import datetime,timezone,timedelta
-from operator import itemgetter
-import time
+from celery import Celery
+from celery.schedules import crontab
 import os
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "asdfasdfa"
-
 tz =  timezone(timedelta(hours=2))
+celery_app = Celery('app',broker=os.environ.get('REDIS_OM_URL'))
+celery_app.conf.update(
+        timezone='Europe/Helsinki')
+
+# TO RUN: $ celery -A app.celery_app worker -B -l info
+@celery_app.on_after_configure.connect
+def setup_periodic_tasks(sender,**kwargs):
+    sender.add_periodic_task(crontab(),every_minute.s(),expires=10)
+
+
+@celery_app.task
+def add(x,y):
+    return x+y
+
+@celery_app.task
+def every_minute():
+    send_reminders()
+
+def send_reminders():
+    reminders = this_minute()
+    for reminder in reminders:
+        print("SENDING REMINDER:",reminder['message'])
 
 
 def build_results(reminders):
@@ -45,15 +63,15 @@ def load_test_data():
     save_reminder("reminder today",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
-    dt += timedelta(minutes=10)
-    save_reminder("reminder today in ten minutes",
+    dt += timedelta(minutes=2)
+    save_reminder("reminder today in 2 minutes",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
-    dt -= timedelta(minutes=20)
-    save_reminder("reminder today in ten minutes ago",
+    dt += timedelta(minutes=1)
+    save_reminder("reminder today in 3 minutes",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
-    dt += timedelta(minutes=10)
+    dt -= timedelta(minutes=3)
     dt += timedelta(days=1)
     save_reminder("reminder tomorrow",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
