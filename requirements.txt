@@ -23,6 +23,7 @@ packaging==21.3
 pptree==3.1
 prompt-toolkit==3.0.36
 pydantic==1.9.0
+PyJWT==2.6.0
 pylev==1.4.0
 pyparsing==3.0.7
 python-dotenv==0.19.2
@@ -32,6 +33,7 @@ redis==4.1.4
 redis-om==0.0.20
 requests==2.27.1
 six==1.16.0
+twilio==7.16.3
 types-redis==4.1.17
 types-six==1.16.11
 typing_extensions==4.1.1

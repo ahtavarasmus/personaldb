@@ -5,11 +5,18 @@ from redis_om import Migrator
 from datetime import datetime,timezone,timedelta
 from celery import Celery
 from celery.schedules import crontab
+from twilio.rest import Client
+from twilio.twiml.messaging_response import MessagingResponse
 import os
+
+
+tz =  timezone(timedelta(hours=2))
+twilio_account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+twilio_auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+twilio_client = Client(twilio_account_sid, twilio_auth_token)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "asdfasdfa"
-tz =  timezone(timedelta(hours=2))
 celery_app = Celery('app',broker=os.environ.get('REDIS_OM_URL'))
 celery_app.conf.update(
         timezone='Europe/Helsinki')
@@ -27,6 +34,20 @@ def add(x,y):
 @celery_app.task
 def every_minute():
     send_reminders()
+
+def call_me():
+    call = twilio_client.calls.create(
+            url='http://demo.twilio.com/docs/voice.xml',
+            to=os.environ.get('MY_PHONE_NUMBER'),
+            from_=os.environ.get('TWILIO_PHONE_NUMBER')
+        )
+
+def text_me():
+    message = twilio_client.messages.create(
+            body="message",
+            messaging_service_sid=os.environ.get('TWILIO_MGS_SID'),
+            to=os.environ.get('MY_PHONE_NUMBER')
+        )
 
 def send_reminders():
     reminders = this_minute()
@@ -104,6 +125,10 @@ def home():
         elif "delete-data" in request.form:
             delete_reminders()
             reminders = all_reminders()
+        elif "call-me" in request.form:
+            call_me()
+        elif "text-me" in request.form:
+            text_me()
         else:
             msg = request.form['message']
             time_str = request.form['time']
@@ -113,6 +138,38 @@ def home():
 
     return render_template("index.html",
                            reminders=reminders)
+
+@app.route("/sms-webhook/", methods=['POST','GET'])
+def incoming_sms():
+
+    body = request.values.get('Body',None)
+    print("HELLO")
+    
+    if not body:
+        return 
+
+    # new reminder
+    reply = 'Error! Was the message formatted right(ignore brackets): \
+                "[keyletter] [day/month/year_two_digits] [hour:minute]" ?'
+    if body[0] == 'r' and body[1] == ' ':
+        parts = body[2:].split()
+        time = parts[0]+" "+parts[1]
+        msg = ""
+        for part in parts[2:]:
+            if part != parts[-1]: 
+                msg += (part+" ")
+            else: 
+                msg += part
+
+        if save_reminder(msg,time):
+            reply = 'Reminder: "{}" added with time "{}".'.format(msg,time)
+
+    resp = MessagingResponse()
+    resp.message(reply)
+
+    return str(resp)
+    
+
 
 
 # gets all the reminders scheduler for today
@@ -127,7 +184,6 @@ def today():
     reminders = Reminder.find((Reminder.time >= start) & (Reminder.time <= end)).all()
 
     return build_results(reminders)
-
 
 def this_hour():
     now = datetime.now().replace(tzinfo=tz)
