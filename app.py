@@ -7,6 +7,7 @@ from celery import Celery
 from celery.schedules import crontab
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.twiml.voice_response import VoiceResponse
 import os
 
 
@@ -52,7 +53,13 @@ def text_me():
 def send_reminders():
     reminders = this_minute()
     for reminder in reminders:
+        message = twilio_client.messages.create(
+                body=f"Remember: {reminder['message']}",
+                messaging_service_sid=os.environ.get('TWILIO_MGS_SID'),
+                to=os.environ.get('MY_PHONE_NUMBER'))
         print("SENDING REMINDER:",reminder['message'])
+        Reminder.delete(reminder['pk'])
+
 
 
 def build_results(reminders):
@@ -66,11 +73,16 @@ def build_results(reminders):
     return response
 
 def save_reminder(msg,time_str):
-    time_obj = datetime.strptime(time_str, "%d/%m/%y %H:%M").replace(tzinfo=tz)
+    try:
+        time_obj = datetime.strptime(time_str, "%d/%m/%y %H:%M").replace(tzinfo=tz)
+    except ValueError:
+        return False
     epoch_time = int(round(time_obj.timestamp()))
     new_reminder = Reminder(message=msg,time=epoch_time)
     new_reminder.save()
     print(new_reminder.pk)
+    return True
+
 
 def load_test_data():
     dt = datetime.now().replace(tzinfo=tz)
@@ -139,18 +151,35 @@ def home():
     return render_template("index.html",
                            reminders=reminders)
 
-@app.route("/sms-webhook/", methods=['POST','GET'])
+@app.route("/sms-webhook", methods=['POST','GET'])
+def sms_reply():
+    resp = MessagingResponse()
+    resp.message("The robots soemtthing")
+    print("hello")
+    return str(resp)
+
+@app.route("/call-webhook", methods=['GET','POST'])
+def answer_call():
+    phone_number = request.values.get('From')
+    message = "Hey Pyry, don't call me."
+
+
+    resp = VoiceResponse()
+    resp.say(message,voice='alice')
+    return str(resp)
+
+@app.route("/sms", methods=['POST','GET'])
 def incoming_sms():
 
-    body = request.values.get('Body',None)
-    print("HELLO")
+    body = request.values.get('Body')
+    print("HAHAHHA")
     
-    if not body:
-        return 
+    if body == None:
+        return
 
     # new reminder
     reply = 'Error! Was the message formatted right(ignore brackets): \
-                "[keyletter] [day/month/year_two_digits] [hour:minute]" ?'
+                "[keyletter] [day/month/year_two_digits] [hour:minute] [message]" ?'
     if body[0] == 'r' and body[1] == ' ':
         parts = body[2:].split()
         time = parts[0]+" "+parts[1]
