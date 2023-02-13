@@ -11,14 +11,15 @@ from twilio.twiml.voice_response import VoiceResponse
 import os
 
 
+
 tz =  timezone(timedelta(hours=2))
-twilio_account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-twilio_auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+twilio_account_sid = config.environ.get('TWILIO_ACCOUNT_SID')
+twilio_auth_token = config.environ.get('TWILIO_AUTH_TOKEN')
 twilio_client = Client(twilio_account_sid, twilio_auth_token)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "asdfasdfa"
-celery_app = Celery('app',broker=os.environ.get('REDIS_OM_URL'))
+celery_app = Celery('app',broker=config.environ.get('REDIS_OM_URL'))
 celery_app.conf.update(
         timezone='Europe/Helsinki')
 
@@ -39,15 +40,15 @@ def every_minute():
 def call_me():
     call = twilio_client.calls.create(
             url='http://demo.twilio.com/docs/voice.xml',
-            to=os.environ.get('MY_PHONE_NUMBER'),
-            from_=os.environ.get('TWILIO_PHONE_NUMBER')
+            to=config.environ.get('MY_PHONE_NUMBER'),
+            from_=config.environ.get('TWILIO_PHONE_NUMBER')
         )
 
 def text_me():
     message = twilio_client.messages.create(
             body="message",
-            messaging_service_sid=os.environ.get('TWILIO_MGS_SID'),
-            to=os.environ.get('MY_PHONE_NUMBER')
+            messaging_service_sid=config.environ.get('TWILIO_MGS_SID'),
+            to=config.environ.get('MY_PHONE_NUMBER')
         )
 
 def send_reminders():
@@ -55,8 +56,8 @@ def send_reminders():
     for reminder in reminders:
         message = twilio_client.messages.create(
                 body=f"Remember: {reminder['message']}",
-                messaging_service_sid=os.environ.get('TWILIO_MGS_SID'),
-                to=os.environ.get('MY_PHONE_NUMBER'))
+                messaging_service_sid=config.environ.get('TWILIO_MGS_SID'),
+                to=config.environ.get('MY_PHONE_NUMBER'))
         print("SENDING REMINDER:",reminder['message'])
         Reminder.delete(reminder['pk'])
 
