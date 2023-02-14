@@ -37,6 +37,7 @@ def login():
 
     return render_template('login.html',user=current_user)
 
+
 @auth.route("/token", methods=['GET','POST'])
 def token_view():
     if request.method == 'POST':
@@ -44,7 +45,7 @@ def token_view():
         token = session.get('token')
         if token and user_token and check_password_hash(token,user_token):
             user = User.find(session.get('user')).first()
-            login_user(user,remember=True)
+            login_user(user.dict(),remember=True)
             return redirect(url_for('routes.home'))
         else:
             flash("Error! Pls try again:)")
@@ -64,10 +65,21 @@ def signup():
             return redirect(url_for('auth.signup'))
         user = User(username=username,phone=phone)
         user.save()
-        login_user(user,remember=True)
+        login_user(user.dict(),remember=True)
         return redirect(url_for('routes.home'))
 
     return render_template('signup.html',user=current_user)
 
+
+@login_manager.user_loader
+def load_user(user_pk):
+    if user_pk is not None:
+        return User.find(User.pk == user_pk).first().dict()
+    return None
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    flash("You need to login first to see this page.")
+    return redirect(url_for('auth.login'))
 
 
