@@ -73,8 +73,12 @@ def signup():
 
 @login_manager.user_loader
 def load_user(user_pk):
+    print(user_pk)
     if user_pk is not None:
-        return User.find(User.pk == user_pk).first().dict()
+        try:
+            return User.find(User.pk == user_pk).first().dict()
+        except:
+            return None
     return None
 
 @login_manager.unauthorized_handler

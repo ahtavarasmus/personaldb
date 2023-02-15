@@ -14,9 +14,12 @@ routes = Blueprint('routes',__name__,template_folder='templates')
 def home():
 
 
-    if 'reminders' not in session:
-        session['reminders'] = user_all_reminders()
-    reminders = session.get('reminders') 
+    if current_user.is_authenticated:
+        if 'reminders' not in session:
+            session['reminders'] = user_all_reminders()
+        reminders = session.get('reminders') 
+    else:
+        reminders = []
 
     if request.method == 'POST':
         if "test-data" in request.form:
