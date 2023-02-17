@@ -1,5 +1,5 @@
 from . import twilio_client,config,tz
-from flask_login import current_user
+from flask import session
 from .models import Reminder
 from datetime import datetime,timedelta
 
@@ -88,24 +88,24 @@ def load_test_data():
     dt = datetime.now().replace(tzinfo=tz)
     
     dt -= timedelta(days=1)
-    save_reminder(current_user['pk'],"reminder yesterday",
+    save_reminder(session['user']['pk'],"reminder yesterday",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
     dt += timedelta(days=1)
-    save_reminder(current_user['pk'],"reminder today",
+    save_reminder(session['user']['pk'],"reminder today",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
     dt += timedelta(minutes=2)
-    save_reminder(current_user['pk'],"reminder today in 2 minutes",
+    save_reminder(session['user']['pk'],"reminder today in 2 minutes",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
     dt += timedelta(minutes=1)
-    save_reminder(current_user['pk'],"reminder today in 3 minutes",
+    save_reminder(session['user']['pk'],"reminder today in 3 minutes",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
     dt -= timedelta(minutes=3)
     dt += timedelta(days=1)
-    save_reminder(current_user['pk'],"reminder tomorrow",
+    save_reminder(session['user']['pk'],"reminder tomorrow",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
 
@@ -113,14 +113,15 @@ def delete_user_reminders():
     """
     deletes reminders in redis for CURRENT USER
     """
-    reminders = Reminder.find(Reminder.pk == current_user['pk']).all()
+    reminders = Reminder.find(Reminder.pk == session['user']['pk']).all()
     for reminder in format_reminders(reminders):
         Reminder.delete(reminder['pk'])
 
 
 def user_all_reminders():
 
-    reminders = Reminder.find(Reminder.pk == current_user['pk']).all()
+    reminders = Reminder.find(
+            Reminder.pk == session['user']['pk']).all()
 
     return format_reminders(reminders)
 

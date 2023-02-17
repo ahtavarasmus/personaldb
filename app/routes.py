@@ -14,11 +14,16 @@ routes = Blueprint('routes',__name__,template_folder='templates')
 def home():
 
 
-    if current_user.is_authenticated:
+    logged_in = False
+    if 'user' in session:
         if 'reminders' not in session:
             session['reminders'] = user_all_reminders()
         reminders = session.get('reminders') 
+        logged_in = True
+        print("hahah")
+        user = session['user']
     else:
+        user = dict()
         reminders = []
 
     if request.method == 'POST':
@@ -31,18 +36,20 @@ def home():
         elif "delete-data" in request.form:
             delete_user_reminders()
         elif "call-me" in request.form:
-            call(current_user['phone'])
+            call(user['phone'])
         elif "text-me" in request.form:
-            text(current_user['phone'],"hey there")
+            text(user['phone'],"hey there")
         else:
             msg = request.form['message']
             time_str = request.form['time']
-            save_reminder(current_user['pk'],msg,time_str)
+            save_reminder(session['user']['pk'],msg,time_str)
 
         return redirect(url_for('routes.home'))
+    print("LOG:",logged_in)
 
     return render_template('home.html',
-                           user=current_user,
+                           user=user,
+                           logged_in=logged_in,
                            reminders=reminders)
 
     

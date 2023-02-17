@@ -1,10 +1,9 @@
-from flask import Blueprint, render_template,request,flash,url_for,redirect,session
+from flask import (Blueprint, render_template,request,flash,url_for,redirect,session)
 from flask import current_app as app
-from flask_login import current_user, login_user, logout_user
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import (check_password_hash, generate_password_hash)
 from redis_om.model.token_escaper import re
 from .models import User
-from . import login_manager,config,twilio_client
+from . import (config,twilio_client)
 import random,time
 
 auth = Blueprint('auth',__name__,template_folder='templates')
@@ -12,88 +11,64 @@ auth = Blueprint('auth',__name__,template_folder='templates')
 
 @auth.route("/login", methods=['POST','GET'])
 def login():
+    logged_in = False
+    if 'user' in session:
+        logged_in = True
+        return redirect(url_for('routes.home'))
     if request.method == 'POST':
 
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.find(User.username == username).first().dict()
+        user = User.find(User.username == username).first()
         
+        print(user)
         if not user:
             flash("No username found! Maybe signup?")
             return redirect(url_for('auth.login'))
-        if check_password_hash(user['password'],str(password)):
-            login_user(user,remember=True)
+        user = user.dict()
+        print("pass:",user['password'])
+        if check_password_hash(str(user['password']),str(password)):
+            session['user'] = user
             return redirect(url_for('routes.home'))
-        else:
-            flash("Wrong password!")
-            return redirect(url_for('auth.login'))
-        return redirect(url_for('auth.token'))
+        flash("Wrong password!")
 
-    return render_template('login.html',user=current_user)
+        print("hahah")
+        return redirect(url_for('auth.login'))
 
-
-#@auth.route("/token", methods=['GET','POST'])
-#def token_view():
-#
-#        phone = user['phone']
-#        token = random.randrange(10000, 99999) 
-
-#        session['user'] = user['username']
-#        session['token'] = generate_password_hash(str(token),method='sha256')
-#
-#        twilio_client.messages.create(
-#                body=str(token),
-#                to=phone,
-#                messaging_service_sid=config.get('TWILIO_MSG_SID')
-#                )
-#        flash("Code sent!")
-#
-#    if request.method == 'POST':
-#        user_token = request.form.get('token')
-#        token = session.get('token')
-#        if token and user_token and check_password_hash(token,user_token):
-#            user = User.find(session.get('user')).first()
-#            login_user(user.dict(),remember=True)
-#            return redirect(url_for('routes.home'))
-#        else:
-#            flash("Error! Pls try again:)")
-#            return redirect(url_for('auth.login'))
-#    return render_template('token.html')
-
+    return render_template('login.html',
+                           logged_in=logged_in
+                           )
 
 
 @auth.route("/signup",methods=['POST','GET'])
 def signup():
+    logged_in = False
+    if 'user' in session:
+        logged_in = True
+        return redirect(url_for('routes.home'))
+
 
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         phone = request.form.get('phone')
-        user = User.find(User.username == username).first()
-        if user:
-            flash("Username taken already! :/")
-            return redirect(url_for('auth.signup'))
-        user = User(username=username,password=password,phone=phone)
+        #user = User.find(User.username == username).first()
+        #if user:
+        ##    flash("Username taken already! :/")
+        #    return redirect(url_for('auth.signup'))
+        user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone)
         user.save()
-        login_user(user.dict(),remember=True)
+        user = user.dict()
+        session['user'] = user
         return redirect(url_for('routes.home'))
 
-    return render_template('signup.html',user=current_user)
+    return render_template('signup.html',logged_in=logged_in)
 
-
-@login_manager.user_loader
-def load_user(user_pk):
-    print(user_pk)
-    if user_pk is not None:
-        try:
-            return User.find(User.pk == user_pk).first().dict()
-        except:
-            return None
-    return None
-
-@login_manager.unauthorized_handler
-def unauthorized():
-    flash("You need to login first to see this page.")
+@auth.route("/logout", methods=['GET','POST'])
+def logout():
+    if 'user' in session:
+        flash('Logged out!')
+        session.pop('user')
     return redirect(url_for('auth.login'))
 
 

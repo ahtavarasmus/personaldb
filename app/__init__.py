@@ -1,11 +1,9 @@
 from flask import Flask,session
-from flask_login import LoginManager
 from twilio.rest import Client
 from redis_om import Migrator
 from celery import Celery
 from celery.schedules import crontab
 from datetime import datetime,timedelta,timezone
-
 import json
 
 with open('/etc/personaldb_config.json') as config_file:
@@ -17,7 +15,6 @@ twilio_client = Client(twilio_acc_sid,twilio_acc_sid)
 
 tz = timezone(timedelta(hours=2))
 
-login_manager = LoginManager()
 celery_app = Celery('app',broker=config.get('REDIS_OM_URL'))
 celery_app.conf.update(timezone='Europe/Helsinki')
 
@@ -35,7 +32,6 @@ def create_app():
     app = Flask(__name__)
     app.config.from_file("/etc/personaldb_config.json", load=json.load)
 
-    login_manager.init_app(app)
 
     with app.app_context():
         from . import routes
