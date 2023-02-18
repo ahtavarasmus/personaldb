@@ -1,29 +1,13 @@
 from . import config,tz
 from flask import session
-from .models import Reminder
+from .models import Reminder,Idea
 from datetime import datetime,timedelta
 from twilio.rest import Client
 
 client = Client(config.get('TWILIO_ACCOUNT_SID'),
                     config.get('TWILIO_AUTH_TOKEN'))
 
-
-# -------------------- UTILITY FUNCTIONS ----------------------
-
-def format_reminders(reminders):
-    """ 
-    Receives a list of reminder json objects
-    and turns them into list of dicts 
-    """
-    response = []
-    for reminder in reminders:
-        rem_dict = reminder.dict()
-        rem_dict['time'] = datetime.fromtimestamp(rem_dict['time'])
-        response.append(rem_dict)
-
-    return response
-
-# -------------------- FOR SPECIFIED USER -----------------------
+# --------------- SAVING/DELETING STUFF ------------------
 
 def save_reminder(user_pk,msg,time_str):
     """
@@ -41,6 +25,37 @@ def save_reminder(user_pk,msg,time_str):
     print(new_reminder.pk)
     return True
 
+ 
+def delete_all_reminders():
+    """
+    deletes reminders in redis for ALL USERS
+    """
+    print("HEre")
+    reminders = Reminder.find().all()
+    for reminder in format_reminders(reminders):
+        print("DELETING:",reminder['pk'])
+        Reminder.delete(reminder['pk'])
+
+
+def delete_user_reminders():
+    """
+    deletes reminders in redis for CURRENT USER
+    """
+    reminders = Reminder.find(Reminder.user == session['user']['pk']).all()
+    for reminder in format_reminders(reminders):
+        print("DELETING:",reminder['pk'])
+        Reminder.delete(reminder['pk'])
+
+
+def save_idea(user,msg):
+    print(msg)
+    new_idea = Idea(user=user,message=msg)
+    new_idea.save()
+
+   
+
+# ----------------------- OUTPUT ----------------------
+
 def call(to):
     """ sends a call to number "to" """
     call = client.calls.create(
@@ -55,17 +70,8 @@ def text(to, msg):
             to=to)
 
 
-    
-# ------------------- FOR ALL USERS ------------------------
-def delete_all_reminders():
-    """
-    deletes reminders in redis for ALL USERS
-    """
-    print("HEre")
-    reminders = Reminder.find().all()
-    for reminder in format_reminders(reminders):
-        print("DELETING:",reminder['pk'])
-        Reminder.delete(reminder['pk'])
+
+# --------------------- QUERIES -----------------------
 
 def all_reminders_this_minute():
     """ 
@@ -88,7 +94,31 @@ def all_reminders_this_minute():
             (Reminder.time <= end)).all()
     return format_reminders(reminders)
 
-# ----------------- FOR CURRENT USER ----------------------
+def user_all_reminders():
+    """ gets all reminders current user has """
+    reminders = Reminder.find(
+            Reminder.user == session['user']['pk']).all()
+
+    return format_reminders(reminders)
+
+
+# -------------------- UTILITY FUNCTIONS ----------------------
+
+def format_reminders(reminders):
+    """ 
+    Receives a list of reminder json objects
+    and turns them into list of dicts 
+    """
+    response = []
+    for reminder in reminders:
+        rem_dict = reminder.dict()
+        rem_dict['time'] = datetime.fromtimestamp(rem_dict['time'])
+        response.append(rem_dict)
+
+    return response
+
+
+# ------------------- TESTING -----------------------
 
 
 def load_test_data():
@@ -115,26 +145,6 @@ def load_test_data():
     save_reminder(session['user']['pk'],"reminder tomorrow",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
-
-def delete_user_reminders():
-    """
-    deletes reminders in redis for CURRENT USER
-    """
-    reminders = Reminder.find(Reminder.user == session['user']['pk']).all()
-    for reminder in format_reminders(reminders):
-        print("DELETING:",reminder['pk'])
-        Reminder.delete(reminder['pk'])
-
-
-def user_all_reminders():
-
-    reminders = Reminder.find(
-            Reminder.user == session['user']['pk']).all()
-
-    return format_reminders(reminders)
-
-
-
 
 
 

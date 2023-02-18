@@ -3,7 +3,7 @@ from flask import current_app as app
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from redis_om.model.token_escaper import re
 from .models import User
-from . import (config,twilio_client)
+from . import config
 import random,time
 
 auth = Blueprint('auth',__name__,template_folder='templates')
@@ -11,9 +11,9 @@ auth = Blueprint('auth',__name__,template_folder='templates')
 
 @auth.route("/login", methods=['POST','GET'])
 def login():
-    logged_in = session.get('logged_in',default=False)
+    user = session.get('user',default={})
 
-    if logged_in:
+    if user:
         return redirect(url_for('routes.home'))
 
     if request.method == 'POST':
@@ -25,47 +25,39 @@ def login():
             flash("No username found! Maybe signup?")
             return redirect(url_for('auth.login'))
         user = user.dict()
-        print("pass:",user['password'])
         if check_password_hash(str(user['password']),str(password)):
-            session['logged_in'] = True
             session['user'] = user
             return redirect(url_for('routes.home'))
         flash("Wrong password!")
 
-        print("hahah")
         return redirect(url_for('auth.login'))
 
-    return render_template('login.html',
-                           logged_in=logged_in
-                           )
+    return render_template('login.html')
 
 
 @auth.route("/signup",methods=['POST','GET'])
 def signup():
 
-    logged_in = session.get('logged_in',default=False)
+    user = session.get('user',default={})
 
-    if logged_in:
+    if user:
         return redirect(url_for('routes.home'))
 
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         phone = request.form.get('phone')
-        user = User.find(User.username == username).first()
-        if user:
-            flash("Username taken already! :/")
-            return redirect(url_for('auth.signup'))
+        #user = User.find(User.username == username).first()
+        #if user:
+        #    flash("Username taken already! :/")
+        #    return redirect(url_for('auth.signup'))
         user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone)
         user.save()
         user = user.dict()
         session['user'] = user
-        session['logged_in'] = True
         return redirect(url_for('routes.home'))
 
-    return render_template('signup.html',
-                           logged_in=logged_in
-                           )
+    return render_template('signup.html')
 
 @auth.route("/logout", methods=['GET','POST'])
 def logout():

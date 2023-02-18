@@ -11,6 +11,9 @@ class Reminder(JsonModel):
     message: str = Field(index=True)
     time: int = Field(index=True)
 
+class Idea(JsonModel):
+    user: str = Field(index=True)
+    message: str = Field(index=True,full_text_search=True)
 
 
 
