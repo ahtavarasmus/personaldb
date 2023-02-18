@@ -8,7 +8,7 @@
         <header>
             <ul>
                 <li><a href="/">Home</a></li>
-                {% if logged_in %}
+                {% if session.get('user',default=None) != None %}
             <li><a href="/logout">Logout</a></li>
                 {% else %}
             <li><a href="/login">Login</a></li>

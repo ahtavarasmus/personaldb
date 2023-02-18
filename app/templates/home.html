@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}Home{% endblock %}
 {% block content %}
-{% if logged_in %}
+{% if session.get('user',default=None) != None %}
 <section>
     <form action="/" method="POST">
         <h3>Get reminders for</h3>
         <input type="submit" name="all" value="All">
-        <input type="submit" name="today" value="Today">
         <input type="submit" name="this-minute" value="This Minute">
         <input type="submit" name="call-me" value="Call Me">
         <input type="submit" name="text-me" value="Text Me">

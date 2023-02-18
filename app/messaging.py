@@ -1,7 +1,12 @@
-from . import twilio_client,config,tz
+from . import config,tz
 from flask import session
 from .models import Reminder
 from datetime import datetime,timedelta
+from twilio.rest import Client
+
+client = Client(config.get('TWILIO_ACCOUNT_SID'),
+                    config.get('TWILIO_AUTH_TOKEN'))
+
 
 # -------------------- UTILITY FUNCTIONS ----------------------
 
@@ -38,15 +43,15 @@ def save_reminder(user_pk,msg,time_str):
 
 def call(to):
     """ sends a call to number "to" """
-    call = twilio_client.calls.create(
+    call = client.calls.create(
             url='http://demo.twilio.com/docs/voice.xml',
             to=to,
             from_=config.get('TWILIO_PHONE_NUMBER'))
 def text(to, msg):
     """ sends a message "msg" to number "to" """
-    message = twilio_client.messages.create(
+    message = client.messages.create(
             body=msg,
-            messaging_service_sid=config.get('TWILIO_MGS_SID'),
+            from_=config.get('TWILIO_PHONE_NUMBER'),
             to=to)
 
 
@@ -56,8 +61,10 @@ def delete_all_reminders():
     """
     deletes reminders in redis for ALL USERS
     """
+    print("HEre")
     reminders = Reminder.find().all()
     for reminder in format_reminders(reminders):
+        print("DELETING:",reminder['pk'])
         Reminder.delete(reminder['pk'])
 
 def all_reminders_this_minute():
@@ -113,15 +120,16 @@ def delete_user_reminders():
     """
     deletes reminders in redis for CURRENT USER
     """
-    reminders = Reminder.find(Reminder.pk == session['user']['pk']).all()
+    reminders = Reminder.find(Reminder.user == session['user']['pk']).all()
     for reminder in format_reminders(reminders):
+        print("DELETING:",reminder['pk'])
         Reminder.delete(reminder['pk'])
 
 
 def user_all_reminders():
 
     reminders = Reminder.find(
-            Reminder.pk == session['user']['pk']).all()
+            Reminder.user == session['user']['pk']).all()
 
     return format_reminders(reminders)
 

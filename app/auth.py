@@ -11,23 +11,23 @@ auth = Blueprint('auth',__name__,template_folder='templates')
 
 @auth.route("/login", methods=['POST','GET'])
 def login():
-    logged_in = False
-    if 'user' in session:
-        logged_in = True
-        return redirect(url_for('routes.home'))
-    if request.method == 'POST':
+    logged_in = session.get('logged_in',default=False)
 
+    if logged_in:
+        return redirect(url_for('routes.home'))
+
+    if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         user = User.find(User.username == username).first()
         
-        print(user)
         if not user:
             flash("No username found! Maybe signup?")
             return redirect(url_for('auth.login'))
         user = user.dict()
         print("pass:",user['password'])
         if check_password_hash(str(user['password']),str(password)):
+            session['logged_in'] = True
             session['user'] = user
             return redirect(url_for('routes.home'))
         flash("Wrong password!")
@@ -42,27 +42,30 @@ def login():
 
 @auth.route("/signup",methods=['POST','GET'])
 def signup():
-    logged_in = False
-    if 'user' in session:
-        logged_in = True
-        return redirect(url_for('routes.home'))
 
+    logged_in = session.get('logged_in',default=False)
+
+    if logged_in:
+        return redirect(url_for('routes.home'))
 
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         phone = request.form.get('phone')
-        #user = User.find(User.username == username).first()
-        #if user:
-        ##    flash("Username taken already! :/")
-        #    return redirect(url_for('auth.signup'))
+        user = User.find(User.username == username).first()
+        if user:
+            flash("Username taken already! :/")
+            return redirect(url_for('auth.signup'))
         user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone)
         user.save()
         user = user.dict()
         session['user'] = user
+        session['logged_in'] = True
         return redirect(url_for('routes.home'))
 
-    return render_template('signup.html',logged_in=logged_in)
+    return render_template('signup.html',
+                           logged_in=logged_in
+                           )
 
 @auth.route("/logout", methods=['GET','POST'])
 def logout():

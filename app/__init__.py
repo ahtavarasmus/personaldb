@@ -1,5 +1,4 @@
 from flask import Flask,session
-from twilio.rest import Client
 from redis_om import Migrator
 from celery import Celery
 from celery.schedules import crontab
@@ -9,9 +8,6 @@ import json
 with open('/etc/personaldb_config.json') as config_file:
     config = json.load(config_file)
 
-twilio_acc_sid = config.get('TWILIO_ACCOUNT_SID')
-twilio_auth_token = config.get('TWILIO_AUTH_TOKEN')
-twilio_client = Client(twilio_acc_sid,twilio_acc_sid)
 
 tz = timezone(timedelta(hours=2))
 
@@ -27,6 +23,10 @@ def setup_periodic_tasks(sender,**kwargs):
 def every_minute():
     print("hahahahha")
 
+# ---------------- LOGIN SESSION --------------
+
+
+# ---------------- CREATE APP ----------------
 
 def create_app():
     app = Flask(__name__)
