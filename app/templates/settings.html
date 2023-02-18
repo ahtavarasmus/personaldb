@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+    <section>
+        Phone: {{user['phone']}}
+        <button type="submit">Change</button>
+    </section>
+    <br>
+    <section>
+        <button type="submit">Change Password</button>
+    </section>
+{% endblock %}
