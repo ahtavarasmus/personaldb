@@ -19,7 +19,11 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        user = User.find(User.username == username).first()
+        try:
+            user = User.find(User.username == username).first()
+        except:
+            flash("No username found! Maybe signup?")
+            return redirect(url_for('auth.login'))
         
         if not user:
             flash("No username found! Maybe signup?")
@@ -51,7 +55,7 @@ def signup():
         #if user:
         #    flash("Username taken already! :/")
         #    return redirect(url_for('auth.signup'))
-        user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone)
+        user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone,ideas=[])
         user.save()
         user = user.dict()
         session['user'] = user

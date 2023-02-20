@@ -1,6 +1,7 @@
 from . import config,tz
 from flask import session
-from .models import Reminder,Idea
+from redis_om.model import NotFoundError
+from .models import Reminder,Idea,User
 from datetime import datetime,timedelta
 from twilio.rest import Client
 
@@ -49,8 +50,14 @@ def delete_user_reminders():
 
 def save_idea(user,msg):
     print(msg)
-    new_idea = Idea(user=user,message=msg)
-    new_idea.save()
+    try:
+        user = User.get(user)
+    except NotFoundError as e:
+        print(e)
+        return "User not found which idea could be added",400
+    user.ideas.append(msg)
+
+    user.save()
 
    
 

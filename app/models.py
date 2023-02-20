@@ -1,10 +1,12 @@
 from redis_om import (Field,JsonModel,EmbeddedJsonModel)
+from typing import List
 
 
 class User(JsonModel):
     username: str = Field(index=True)
     password: str = Field(index=True)
     phone: str = Field(index=True)
+    ideas: List[str] = Field(index=True)
 
 class Reminder(JsonModel):
     user: str = Field(index=True)
