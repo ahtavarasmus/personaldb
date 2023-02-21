@@ -56,6 +56,8 @@ def save_idea(user,msg):
         print(e)
         return "User not found which idea could be added",400
     user.ideas.append(msg)
+    cur_user = session.get('user',default=dict())
+    cur_user['ideas'].append(msg)
 
     user.save()
 
@@ -107,6 +109,16 @@ def user_all_reminders():
             Reminder.user == session['user']['pk']).all()
 
     return format_reminders(reminders)
+
+def user_all_ideas():
+    user = session.get('user',default=dict())
+    try:
+        cur_user = User.find(User.pk == user['pk']).first()
+        ideas = list(cur_user.ideas)
+        return ideas
+    except:
+        return []
+
 
 
 # -------------------- UTILITY FUNCTIONS ----------------------

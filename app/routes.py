@@ -42,8 +42,10 @@ def home():
     if user:
         reminders = session.get(
             'reminders',default=user_all_reminders())
+        ideas = user_all_ideas()
     else:
         reminders = []
+        ideas = []
 
 
         
@@ -51,7 +53,9 @@ def home():
     return render_template('home.html',
                            session=session,
                            user=user,
-                           reminders=reminders)
+                           reminders=reminders,
+                           ideas=ideas
+                           )
 
     
 @routes.route("/settings",methods=['POST','GET'])

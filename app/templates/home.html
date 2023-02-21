@@ -36,6 +36,11 @@
         <input type="text" name="message" id="message">
         <button type="submit" name="idea">Add</button>
     </form>
+    <ul>
+    {% for idea in ideas %}
+        <li>{{idea}}</li>
+    {% endfor %}
+    </ul>
 </section>
 
 {% else %}

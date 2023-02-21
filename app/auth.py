@@ -51,14 +51,18 @@ def signup():
         username = request.form.get('username')
         password = request.form.get('password')
         phone = request.form.get('phone')
-        #user = User.find(User.username == username).first()
-        #if user:
-        #    flash("Username taken already! :/")
-        #    return redirect(url_for('auth.signup'))
+        try:
+            user_exists = User.find(User.username == username).first()
+            if user_exists:
+                flash("Username taken already! :/")
+                return redirect(url_for('auth.signup'))
+        except:
+            flash("Username taken already! :/")
+            return redirect(url_for('auth.signup'))
         user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone,ideas=[])
         user.save()
         user = user.dict()
-        session['user'] = user
+        session['user'] = user 
         return redirect(url_for('routes.home'))
 
     return render_template('signup.html')
