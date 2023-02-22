@@ -2,11 +2,16 @@
 {% block title %}Settings{% endblock %}
 {% block content %}
     <section>
+        <form action="/settings" method="POST">
         Phone: {{user['phone']}}
-        <button type="submit">Change</button>
+        <button type="submit" name="phone-change">Change</button>
+        </form>
     </section>
     <br>
     <section>
-        <button type="submit">Change Password</button>
+        <form action="/settings" method="POST">
+        <input type="password" name="password" placeholder="Write New Password">
+        <input type="submit" name="change-password" value="Change Password">
+        </form>
     </section>
 {% endblock %}

@@ -1,6 +1,7 @@
-from flask import Blueprint, render_template,request,redirect,url_for,session
+from flask import Blueprint, render_template,request,redirect,url_for,session,flash
 from flask_login import login_required, current_user
 from twilio.twiml.messaging_response import MessagingResponse
+from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.twiml.voice_response import VoiceResponse
 from . import celery_app,tz
 from datetime import datetime, timedelta
@@ -61,6 +62,19 @@ def home():
 @routes.route("/settings",methods=['POST','GET'])
 def settings():
     user = session.get('user',default={})
+
+    if request.method == 'POST':
+        if "phone-change" in request.form:
+            pass
+        elif "change-password" in request.form:
+            print(request.form.get('password'))
+            new_pass = request.form.get('password')
+            u = User.find(User.pk == user['pk']).first()
+            u.password = generate_password_hash(str(new_pass),method='sha256')
+            u.save()
+            flash("Password changed!")
+            return redirect(url_for('routes.settings'))
+        
     
     return render_template('settings.html',
                            user=user
