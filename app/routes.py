@@ -7,6 +7,7 @@ from . import celery_app,tz
 from datetime import datetime, timedelta
 from .messaging import *
 import json
+import random
 
 
 routes = Blueprint('routes',__name__,template_folder='templates')
@@ -65,9 +66,9 @@ def settings():
 
     if request.method == 'POST':
         if "phone-change" in request.form:
-            pass
+            return redirect(url_for('auth.token'))
+
         elif "change-password" in request.form:
-            print(request.form.get('password'))
             new_pass = request.form.get('password')
             u = User.find(User.pk == user['pk']).first()
             u.password = generate_password_hash(str(new_pass),method='sha256')

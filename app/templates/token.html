@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Authorization{% endblock %}
+{% block content %}
+<form action="/token" method="POST">
+    <label for="new_phone">New Phone Number</label>
+    <input name="new_phone" type="text">
+    <input type="submit" name="new_phone" value="Change">
+</form>
+<br>
+<form action="/token" method="POST">
+    <label for="code">Insert code sent to your phone:</label>
+    <input name="code" type="text">
+    <input name="code" type="submit" value="Check">
+</form>
+{% endblock %}

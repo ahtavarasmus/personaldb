@@ -4,6 +4,7 @@ from werkzeug.security import (check_password_hash, generate_password_hash)
 from redis_om.model.token_escaper import re
 from .models import User
 from . import config
+from .messaging import *
 import random,time
 
 auth = Blueprint('auth',__name__,template_folder='templates')
@@ -19,15 +20,16 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        # following is really bad i know, idk how 
         try:
             user = User.find(User.username == username).first()
+            if not user:
+                flash("No username found! Maybe signup?")
+                return redirect(url_for('auth.login'))
         except:
             flash("No username found! Maybe signup?")
             return redirect(url_for('auth.login'))
         
-        if not user:
-            flash("No username found! Maybe signup?")
-            return redirect(url_for('auth.login'))
         user = user.dict()
         if check_password_hash(str(user['password']),str(password)):
             session['user'] = user
@@ -51,6 +53,7 @@ def signup():
         username = request.form.get('username')
         password = request.form.get('password')
         phone = request.form.get('phone')
+        # how do i do the following?
         try:
             user_exists = User.find(User.username == username).first()
             if user_exists:
@@ -74,4 +77,37 @@ def logout():
         session.pop('user')
     return redirect(url_for('auth.login'))
 
+@auth.route("/token", methods=['POST','GET'])
+def token():
+
+    user = session.get('user',default=dict())
+
+    if request.method == 'POST':
+        if 'new_phone' in request.form:
+            new_phone = request.form.get('new_phone')
+            session['new_phone'] = new_phone
+            token = random.randrange(10000,99999)
+            hash_code = generate_password_hash(str(token))
+            session['code'] = hash_code
+            text(user['phone'],f"Code:\n {token}")
+            flash("Code sent!")
+            return redirect(url_for('auth.token'))
+            
+        else:
+            post_code = request.form.get('code')
+            hash_code = session.get('code',default="")
+            if (check_password_hash(hash_code,str(post_code))):
+                flash("Number changed!")
+                usr = User.find(User.pk == user['pk']).first()
+                usr.phone = session.get('new_phone')
+                usr.save()
+                user['phone'] = session.get('new_phone')
+                session.pop('new_phone')
+                session.pop('code')
+                return redirect(url_for('routes.settings'))
+            else:
+                flash("Wrong code!")
+                return redirect(url_for('auth.token'))
+            
+    return render_template('token.html')
 
