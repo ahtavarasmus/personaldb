@@ -63,6 +63,10 @@ def home():
 @routes.route("/settings",methods=['POST','GET'])
 def settings():
     user = session.get('user',default={})
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
 
     if request.method == 'POST':
         if "phone-change" in request.form:
@@ -80,3 +84,15 @@ def settings():
     return render_template('settings.html',
                            user=user
                            )
+@routes.route("/delete-idea-<idea>")
+def delete_idea(idea):
+    user = session.get('user',default=dict())
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+    user_obj = User.find(User.pk == user['pk']).first()
+    user_obj.ideas.remove(idea)
+    user_obj.save()
+    user['ideas'].remove(idea)
+    return redirect(url_for('routes.home'))
+

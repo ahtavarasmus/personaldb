@@ -38,7 +38,7 @@
     </form>
     <ul>
     {% for idea in ideas %}
-        <li>{{idea}}</li>
+    <li>{{idea}} <a href="/delete-idea-{{idea}}">Del</a></li>
     {% endfor %}
     </ul>
 </section>
