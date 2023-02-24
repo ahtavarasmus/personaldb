@@ -96,3 +96,19 @@ def delete_idea(idea):
     user['ideas'].remove(idea)
     return redirect(url_for('routes.home'))
 
+@routes.route("/edit-reminder-<pk>", methods=['POST','GET'])
+def edit_reminder(pk):
+    reminder = Reminder.find(Reminder.pk == pk).first().dict()
+    user = session.get('user')
+    if request.method == 'POST':
+        if 'delete' in request.form:
+            Reminder.delete(pk)
+        elif 'time' in request.form:
+            time = request.form.get('time')
+            save_reminder(user['pk'],reminder['message'],time)
+            Reminder.delete(pk)
+        elif 'msg' in request.form:
+            pass
+
+
+
