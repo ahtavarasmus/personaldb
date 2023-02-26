@@ -1,5 +1,7 @@
+from types import MethodDescriptorType
 from flask import Blueprint, render_template,request,redirect,url_for,session,flash
 from flask_login import login_required, current_user
+from twilio.twiml import re
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.twiml.voice_response import VoiceResponse
@@ -24,14 +26,6 @@ def home():
             session['reminders'] = user_all_reminders()
         elif "this-minute" in request.form:
             session['reminders'] = all_reminders_this_minute()
-        elif "delete-data" in request.form:
-            print("HERE")
-            delete_user_reminders()
-        elif "call-me" in request.form:
-            call(user['phone'])
-        elif "text-me" in request.form:
-            print("PHONE=",user['phone'])
-            text(user['phone'],"hey there")
         elif "reminder" in request.form:
             msg = request.form['message']
             time_str = request.form['time']
@@ -39,6 +33,9 @@ def home():
         elif "idea" in request.form:
             msg = request.form['message']
             save_idea(session['user']['pk'],msg)
+        
+        return redirect(url_for('routes.home'))
+
 
 
     if user:
@@ -84,31 +81,101 @@ def settings():
     return render_template('settings.html',
                            user=user
                            )
-@routes.route("/delete-idea-<idea>")
-def delete_idea(idea):
+@routes.route("/edit-idea-<idea>", methods=['POST','GET'])
+def edit_idea(idea):
     user = session.get('user',default=dict())
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
+
     user_obj = User.find(User.pk == user['pk']).first()
-    user_obj.ideas.remove(idea)
-    user_obj.save()
-    user['ideas'].remove(idea)
-    return redirect(url_for('routes.home'))
+    if request.method == 'POST':
+        new_idea = request.form.get('idea')
+        if new_idea == "":
+            user_obj.ideas.remove(idea)
+            flash("Idea deleted")
+        else:
+            user_obj.ideas[user_obj.index(idea)] = new_idea 
+            flash("Idea edited")
+        user_obj.save()
+        return redirect(url_for('routes.home'))
+
+    return render_template('edit_idea.html',
+                           cur_idea=idea)
+
 
 @routes.route("/edit-reminder-<pk>", methods=['POST','GET'])
 def edit_reminder(pk):
-    reminder = Reminder.find(Reminder.pk == pk).first().dict()
-    user = session.get('user')
+    user = session.get('user',default=dict())
+    if not user:
+        flash("login required")
+        return redirect(url_for('routes.home'))
+
+    try: 
+        reminder = Reminder.find(Reminder.pk == pk).first()
+    except NotFoundError:
+        flash("reminder not found")
+        return redirect(url_for('routes.home'))
+
+    rem_message_str = reminder.dict()['message']
+
     if request.method == 'POST':
-        if 'delete' in request.form:
-            Reminder.delete(pk)
-        elif 'time' in request.form:
+        if 'time' in request.form:
             time = request.form.get('time')
-            save_reminder(user['pk'],reminder['message'],time)
-            Reminder.delete(pk)
+            try:
+                time_obj = datetime.strptime(str(time),
+                    "%d/%m/%y %H:%M").replace(tzinfo=tz)
+            except ValueError as e:
+                print(e)
+                flash("Date format not right")
+                return render_template('edit_reminder.html',
+                                       reminder_pk=pk)
+            epoch_time = int(round(time_obj.timestamp()))
+            reminder.time = epoch_time
+            reminder.save()
+            flash("Time changed")
         elif 'msg' in request.form:
-            pass
+            msg = request.form.get('msg')
+            if msg == "":
+                Reminder.delete(pk)
+                flash("Reminder Deleted")
+            else: 
+                reminder.message = msg
+                reminder.save()
+                flash("Message changed")
+
+        return redirect(url_for('routes.home'))
+    return render_template('edit_reminder.html',
+                            message=rem_message_str,
+                           reminder_pk=pk
+                           )
+
+@routes.route("/delete-idea-<idea>")
+def delete_idea(idea):
+
+    user = session.get('user',default=dict())
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
+    user_obj = User.find(User.pk == user['pk']).first()
+    user_obj.ideas.remove(idea)
+    user_obj.save()
+    flash("idea deleted")
+    return redirect(url_for('routes.home'))
+    
+@routes.route("/delete-reminder-<pk>")
+def delete_reminder(pk):
+
+    user = session.get('user',default=dict())
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+    Reminder.delete(pk)
+    flash("reminder delete")
+    return redirect(url_for('routes.home'))
+
+
 
 
 

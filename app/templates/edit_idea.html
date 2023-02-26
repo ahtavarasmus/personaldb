@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Edit idea{% endblock %}
+{% block content %}
+<form action="/edit-idea-{{idx}}">
+    <input type="text" name="idea" value="{{cur_idea}}">
+    <input type="submit" name="idea">
+</form>
+{% endblock %}

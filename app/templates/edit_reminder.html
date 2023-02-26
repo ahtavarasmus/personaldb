@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Edit Reminder{% endblock %}
+{% block content %}
+<section>   
+    <form action="/edit-reminder-{{reminder_pk}}" method="POST">
+        <label for="msg">Message</label>
+        <input name="msg" type="text" value="{{message}}">
+        <input name="msg" type="submit" value="Confirm">
+    </form>
+    <form action="/edit-reminder-{{reminder_pk}}" method="POST">
+        <label for="time">Time</label>
+        <input name="time" type="text" placeholder="no change if left empty">
+        <input name="time" type="submit" value="Confirm">
+    </form>
+    </section>
+{% endblock %}

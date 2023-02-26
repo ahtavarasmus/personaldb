@@ -17,7 +17,7 @@ def save_reminder(user_pk,msg,time_str):
     return: True if success, else False
     """
     try:
-        time_obj = datetime.strptime(time_str, "%d/%m/%y %H:%M").replace(tzinfo=tz)
+        time_obj = datetime.strptime(str(time_str), "%d/%m/%y %H:%M").replace(tzinfo=tz)
     except ValueError:
         return False
     epoch_time = int(round(time_obj.timestamp()))
