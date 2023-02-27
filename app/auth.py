@@ -81,33 +81,41 @@ def logout():
 def token():
 
     user = session.get('user',default=dict())
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
+
 
     if request.method == 'POST':
-        if 'new_phone' in request.form:
-            new_phone = request.form.get('new_phone')
-            session['new_phone'] = new_phone
-            token = random.randrange(10000,99999)
-            hash_code = generate_password_hash(str(token))
-            session['code'] = hash_code
-            text(user['phone'],f"Code:\n {token}")
-            flash("Code sent!")
-            return redirect(url_for('auth.token'))
-            
+        if "resend" in request.form:
+            send_code()
+            return render_template('token.html')
+        post_code = request.form.get('code')
+        hash_code = session.get('code',default="")
+        if (check_password_hash(hash_code,str(post_code))):
+            flash("Number changed!")
+            usr = User.find(User.pk == user['pk']).first()
+            usr.phone = session.get('new_phone')
+            usr.save()
+            user['phone'] = session.get('new_phone')
+            session.pop('new_phone')
+            session.pop('code')
+            return redirect(url_for('routes.settings'))
         else:
-            post_code = request.form.get('code')
-            hash_code = session.get('code',default="")
-            if (check_password_hash(hash_code,str(post_code))):
-                flash("Number changed!")
-                usr = User.find(User.pk == user['pk']).first()
-                usr.phone = session.get('new_phone')
-                usr.save()
-                user['phone'] = session.get('new_phone')
-                session.pop('new_phone')
-                session.pop('code')
-                return redirect(url_for('routes.settings'))
-            else:
-                flash("Wrong code!")
-                return redirect(url_for('auth.token'))
-            
+            flash("Wrong code!")
+            return redirect(url_for('auth.token'))
+    
+    send_code()
     return render_template('token.html')
+
+def send_code():
+
+    user = session.get('user',default=dict())
+    token = random.randrange(10000,99999)
+    hash_code = generate_password_hash(str(token))
+    session['code'] = hash_code
+    text(user['phone'],f"Code:\n {token}")
+    flash("Code sent!")
+
 

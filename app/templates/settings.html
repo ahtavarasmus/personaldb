@@ -3,8 +3,9 @@
 {% block content %}
     <section>
         <form action="/settings" method="POST">
-        Phone: {{user['phone']}}
-        <button type="submit" name="phone-change">Change</button>
+            <label for="new_phone">Phone:</label>
+            <input type="text" name="new_phone" value="{{user['phone']}}">
+            <input type="submit" name="new_phone" value="Change">
         </form>
     </section>
     <br>

@@ -66,7 +66,9 @@ def settings():
 
 
     if request.method == 'POST':
-        if "phone-change" in request.form:
+        if "new_phone" in request.form:
+            new_phone = request.form.get('new_phone')
+            session['new_phone'] = new_phone
             return redirect(url_for('auth.token'))
 
         elif "change-password" in request.form:
