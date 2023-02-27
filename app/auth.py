@@ -128,15 +128,6 @@ def token():
     send_code(to)
     return render_template('token.html')
 
-def send_code(to):
-
-    user = session.get('user',default=dict())
-    token = random.randrange(10000,99999)
-    hash_code = generate_password_hash(str(token))
-    session['code'] = hash_code
-    text(to,f"Code:\n {token}")
-    flash("Code sent!")
-
 @auth.route("/forgot", methods=['POST','GET'])
 def forgot():
     if request.method == 'POST':

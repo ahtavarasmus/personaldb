@@ -1,9 +1,11 @@
 from . import config,tz
-from flask import session
+from flask import session,flash
 from redis_om.model import NotFoundError
 from .models import Reminder,Idea,User
 from datetime import datetime,timedelta
+from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.rest import Client
+import random
 
 client = Client(config.get('TWILIO_ACCOUNT_SID'),
                     config.get('TWILIO_AUTH_TOKEN'))
@@ -77,6 +79,19 @@ def text(to, msg):
             body=msg,
             from_=config.get('TWILIO_PHONE_NUMBER'),
             to=to)
+
+
+def send_code(to):
+    """ sends authorization code to "to" number 
+        and saves the hashed code to session
+    """
+    user = session.get('user',default=dict())
+    token = random.randrange(10000,99999)
+    hash_code = generate_password_hash(str(token))
+    session['code'] = hash_code
+    text(to,f"Code:\n {token}")
+    flash("Code sent!")
+
 
 
 
