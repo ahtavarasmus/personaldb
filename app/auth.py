@@ -18,6 +18,8 @@ def login():
         return redirect(url_for('routes.home'))
 
     if request.method == 'POST':
+        if "forgot" in request.form:
+            return redirect(url_for('auth.forgot'))
         username = request.form.get('username')
         password = request.form.get('password')
         # following is really bad i know, idk how 
@@ -81,41 +83,77 @@ def logout():
 def token():
 
     user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
+
+    todo = session.get("todo", default="")
+ 
+    if todo == "change_phone":
+        to = user['phone']
+    elif todo == "forgot_password":
+        to = session.get('phone')
+    else:
+        # this won't happen
         return redirect(url_for('routes.home'))
-
-
 
     if request.method == 'POST':
         if "resend" in request.form:
-            send_code()
+            send_code(to)
             return render_template('token.html')
         post_code = request.form.get('code')
         hash_code = session.get('code',default="")
         if (check_password_hash(hash_code,str(post_code))):
-            flash("Number changed!")
-            usr = User.find(User.pk == user['pk']).first()
-            usr.phone = session.get('new_phone')
-            usr.save()
-            user['phone'] = session.get('new_phone')
-            session.pop('new_phone')
-            session.pop('code')
-            return redirect(url_for('routes.settings'))
+            if todo == "change_phone":
+                new_phone = session.get('phone')
+                print(user['pk'])
+                usr = User.find(User.pk == user['pk']).first()
+                usr.phone = session.get('phone')
+                usr.save()
+                user['phone'] = session.get('phone')
+                session.pop('phone')
+                session.pop('code')
+                session.pop("todo")
+                flash("Number changed!")
+                return redirect(url_for('routes.settings'))
+            elif todo == "forgot_password":
+                to = session.get('phone')
+                session.pop('phone')
+                session.pop("todo")
+                session.pop("code")
+                user = User.find(User.phone == to).first().dict()
+                session['user'] = user
+                flash("Logged in. Now go change your password.")
+                return redirect(url_for('routes.settings'))
         else:
             flash("Wrong code!")
             return redirect(url_for('auth.token'))
-    
-    send_code()
+    send_code(to)
     return render_template('token.html')
 
-def send_code():
+def send_code(to):
 
     user = session.get('user',default=dict())
     token = random.randrange(10000,99999)
     hash_code = generate_password_hash(str(token))
     session['code'] = hash_code
-    text(user['phone'],f"Code:\n {token}")
+    text(to,f"Code:\n {token}")
     flash("Code sent!")
 
+@auth.route("/forgot", methods=['POST','GET'])
+def forgot():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        try:
+            user = User.find(User.username == username).first()
+            if not user:
+                flash("No username found! Maybe signup?")
+                return redirect(url_for('auth.forgot'))
+        except:
+            flash("No username found! Maybe signup?")
+            return redirect(url_for('auth.forgot'))
+        user_dict = user.dict()
+        session['phone'] = user_dict['phone']
+        session['todo'] = "forgot_password"
+        return redirect(url_for('auth.token'))
 
+        
+
+    return render_template('forgot.html')

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Forgot password{% endblock %}
+{% block content %}
+    <form action="/forgot" method="POST">
+        <label for="username">Your Username</label>
+        <input name="username" type="text">
+        <input type="submit" name="username" value="Search"> 
+    </form>
+{% endblock %}
