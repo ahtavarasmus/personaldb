@@ -56,21 +56,24 @@ def save_idea(user,msg):
         user = User.get(user)
     except NotFoundError as e:
         print(e)
-        return "User not found which idea could be added",400
+        return False
+    print("USER: ",user.pk)
     user.ideas.append(msg)
-    cur_user = session.get('user',default=dict())
-    cur_user['ideas'].append(msg)
+    if "user" in session:
+        cur_user = session.get('user',default=dict())
+        cur_user['ideas'].append(msg)
 
     user.save()
+    return True
 
    
 
 # ----------------------- OUTPUT ----------------------
 
-def call(to):
+def call(to,msg):
     """ sends a call to number "to" """
     call = client.calls.create(
-            url='http://demo.twilio.com/docs/voice.xml',
+            twiml='<Response><Say>{}</Say></Response>'.format(msg),
             to=to,
             from_=config.get('TWILIO_PHONE_NUMBER'))
 def text(to, msg):
@@ -118,10 +121,10 @@ def all_reminders_this_minute():
             (Reminder.time <= end)).all()
     return format_reminders(reminders)
 
-def user_all_reminders():
+def user_all_reminders(user_pk):
     """ gets all reminders current user has """
     reminders = Reminder.find(
-            Reminder.user == session['user']['pk']).all()
+            Reminder.user == user_pk).all()
 
     return format_reminders(reminders)
 

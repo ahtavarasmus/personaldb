@@ -23,7 +23,7 @@ def home():
         if "test-data" in request.form:
             load_test_data()
         elif "all" in request.form:
-            session['reminders'] = user_all_reminders()
+            session['reminders'] = user_all_reminders(user['pk'])
         elif "this-minute" in request.form:
             session['reminders'] = all_reminders_this_minute()
         elif "reminder" in request.form:
@@ -40,7 +40,7 @@ def home():
 
     if user:
         reminders = session.get(
-            'reminders',default=user_all_reminders())
+            'reminders',default=user_all_reminders(user['pk']))
         ideas = user_all_ideas()
     else:
         reminders = []
@@ -179,6 +179,58 @@ def delete_reminder(pk):
     return redirect(url_for('routes.home'))
 
 
+@routes.route("/sms-webhook",methods=['POST'])
+def sms_webhook():
 
+    phone = request.values.get('From',None)
+    body = request.values.get('Body',None)
+    if body == None or phone == None: 
+        print("NO MESSAGE OR PHONE")
+        return "no message or phone",404
+    try:
+        user = User.find(User.phone == phone).first()
+    except:
+        print("USER NOT FOUND")
+        return "user not found",404
+    message = ""
+    
+    if body[:5] == "all r":
+        all_reminders = user_all_reminders(str(user.pk))
+        if not all_reminders:
+            message = "no reminders"
+        else:
+            for r in all_reminders:
+                message += str(r['time']) + " " + r['message'] + "\n"
 
+    elif body[:2] == 'r ':
+        t = re.search(r"\d+\/\d+\/\d+",body[2:])
+        t2 = re.search(r"\d+\:\d+",body[2:])
+        if t == None or t2 == None:
+            message = "Date format not right"
+        else:
+            time = t.group() + " " + t2.group()
+            msg = ""
+            first_add = True
+            for x in body[2:].split():
+                if x != t.group() and x != t2.group():
+                    if first_add:
+                        msg += x
+                        first_add = False
+                    else:
+                        msg += " "+x
+            if save_reminder(str(user.pk),msg,time):
+                message = "Reminder saved."
+            else:
+                message = "Could not save the reminder"
+    elif body[:2] == 'i ':
+        if save_idea(str(user.pk),body[2:]):
+            message = "Idea saved"
+        else:
+            message = "Could not save the idea"
+    else:
+        message = "wrong keyword"
 
+    resp = MessagingResponse()
+
+    resp.message(message)
+    return str(resp)
