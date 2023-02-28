@@ -42,9 +42,9 @@
     </form>
     <ul>
     {% for idea in ideas %}
-    <li>{{idea}} 
-        <a href="/delete-idea-{{idea}}">del </a>
-        <a href="/edit-idea-{{idea}}">edit</a></li>
+    <li>{{idea['message']}} 
+        <a href="/delete-idea-{{idea['pk']}}">del </a>
+        <a href="/edit-idea-{{idea['pk']}}">edit</a></li>
     {% endfor %}
     </ul>
 </section>

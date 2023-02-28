@@ -41,7 +41,7 @@ def home():
     if user:
         reminders = session.get(
             'reminders',default=user_all_reminders(user['pk']))
-        ideas = user_all_ideas()
+        ideas = user_all_ideas(user['pk'])
     else:
         reminders = []
         ideas = []
@@ -84,27 +84,29 @@ def settings():
     return render_template('settings.html',
                            user=user
                            )
-@routes.route("/edit-idea-<idea>", methods=['POST','GET'])
-def edit_idea(idea):
+@routes.route("/edit-idea-<pk>", methods=['POST','GET'])
+def edit_idea(pk):
     user = session.get('user',default=dict())
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
 
-    user_obj = User.find(User.pk == user['pk']).first()
+    idea = Idea.find(Idea.pk == pk).first()
+    cur_idea = idea.dict()
     if request.method == 'POST':
         new_idea = request.form.get('idea')
         if new_idea == "":
-            user_obj.ideas.remove(idea)
+            Idea.delete(pk)
             flash("Idea deleted")
         else:
-            user_obj.ideas[user_obj.index(idea)] = new_idea 
+            print("NEW IDEA: ",new_idea)
+            idea.message = new_idea
+            idea.save()
             flash("Idea edited")
-        user_obj.save()
         return redirect(url_for('routes.home'))
 
     return render_template('edit_idea.html',
-                           cur_idea=idea)
+                           cur_idea=cur_idea)
 
 
 @routes.route("/edit-reminder-<pk>", methods=['POST','GET'])
@@ -153,17 +155,14 @@ def edit_reminder(pk):
                            reminder_pk=pk
                            )
 
-@routes.route("/delete-idea-<idea>")
-def delete_idea(idea):
+@routes.route("/delete-idea-<pk>")
+def delete_idea(pk):
 
     user = session.get('user',default=dict())
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
-
-    user_obj = User.find(User.pk == user['pk']).first()
-    user_obj.ideas.remove(idea)
-    user_obj.save()
+    Idea.delete(pk)
     flash("idea deleted")
     return redirect(url_for('routes.home'))
     
@@ -201,6 +200,17 @@ def sms_webhook():
         else:
             for r in all_reminders:
                 message += str(r['time']) + " " + r['message'] + "\n"
+    elif body[:10] == "all i with":
+        key = body[11:]
+        user_pk = str(user.pk)
+        ideas_obj = Idea.find((Idea.user == user_pk) and 
+                          (Idea.message % key)).all()
+        ideas = format_ideas(ideas_obj)
+        if not ideas:
+            message = "no ideas"
+        else:
+            for i in ideas:
+                message += "- "+i['message']+"\n"
 
     elif body[:2] == 'r ':
         t = re.search(r"\d+\/\d+\/\d+",body[2:])

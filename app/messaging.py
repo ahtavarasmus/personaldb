@@ -52,18 +52,8 @@ def delete_user_reminders():
 
 def save_idea(user,msg):
     print(msg)
-    try:
-        user = User.get(user)
-    except NotFoundError as e:
-        print(e)
-        return False
-    print("USER: ",user.pk)
-    user.ideas.append(msg)
-    if "user" in session:
-        cur_user = session.get('user',default=dict())
-        cur_user['ideas'].append(msg)
-
-    user.save()
+    new_idea = Idea(user=user,message=msg)
+    new_idea.save()
     return True
 
    
@@ -128,18 +118,20 @@ def user_all_reminders(user_pk):
 
     return format_reminders(reminders)
 
-def user_all_ideas():
-    user = session.get('user',default=dict())
-    try:
-        cur_user = User.find(User.pk == user['pk']).first()
-        ideas = list(cur_user.ideas)
-        return ideas
-    except:
-        return []
+def user_all_ideas(user_pk):
+    ideas = Idea.find(Idea.user == user_pk).all()
+    return format_ideas(ideas)
 
 
 
 # -------------------- UTILITY FUNCTIONS ----------------------
+
+def format_ideas(ideas):
+    response = []
+    for idea in ideas:
+        i_dict = idea.dict()
+        response.append(i_dict)
+    return response
 
 def format_reminders(reminders):
     """ 
