@@ -23,8 +23,6 @@ def setup_periodic_tasks(sender,**kwargs):
 def every_minute():
     print("hahahahha")
 
-# ---------------- LOGIN SESSION --------------
-
 
 # ---------------- CREATE APP ----------------
 
