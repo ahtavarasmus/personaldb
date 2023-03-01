@@ -193,10 +193,50 @@ def sms_webhook():
         return "user not found",404
     message = ""
     
-    if body[:5] == "all r":
+    if body[:4] == "help":
+        if body[5:] == "r":
+            message = '''"r [body]" -> add reminder,
+                        [body] must include a message and date 
+                        formatted like "12/2/2054 23:00" somewhere.
+                        e.g. "r groceries 12/2/2054 12:00".
+                        
+                        "all r" -> get all reminders.
+            '''
+        if body[5:] == "i":
+            message = '''"i [body]" -> add idea,
+                        [body] has the idea.
+                        e.g. "i bake more" adds a "bake more" idea.
+
+                        "all i with [body]" -> get all ideas, 
+                        that have the keyword [body].
+                        E.g. "all i with bake" returns every idea 
+                        where you used the word "bake".
+            '''
+        if body[5:] == "t":
+            message = '''"t [body]" -> adds a new timer,
+                        [body] must include a minute value.
+                        E.g. "t 20min" will add timer for 20 minutes.
+
+                        "t stop" -> stops the current timer.
+            '''
+        else:
+            message = '''
+                    "r [body]"->add reminder
+                    "all r"   ->get all reminders
+                    "i [body]"->save idea
+                    "all i with [body]" -> all ideas with [body]
+                    "t [body]"->start timer
+                    "t stop"  ->stop timer
+
+                    Use "help [x]" to get more info about x->(r,i or t).
+
+                      
+                    "
+                    '''
+    elif body[:5] == "all r":
         all_reminders = user_all_reminders(str(user.pk))
         if not all_reminders:
-            message = "no reminders"
+            message = "No reminders."
         else:
             for r in all_reminders:
                 message += str(r['time']) + " " + r['message'] + "\n"
@@ -207,7 +247,7 @@ def sms_webhook():
                           (Idea.message % key)).all()
         ideas = format_ideas(ideas_obj)
         if not ideas:
-            message = "no ideas"
+            message = "No ideas found."
         else:
             for i in ideas:
                 message += "- "+i['message']+"\n"
@@ -216,7 +256,7 @@ def sms_webhook():
         t = re.search(r"\d+\/\d+\/\d+",body[2:])
         t2 = re.search(r"\d+\:\d+",body[2:])
         if t == None or t2 == None:
-            message = "Date format not right"
+            message = 'Error. Date format not right. See-> '
         else:
             time = t.group() + " " + t2.group()
             msg = ""
@@ -231,14 +271,30 @@ def sms_webhook():
             if save_reminder(str(user.pk),msg,time):
                 message = "Reminder saved."
             else:
-                message = "Could not save the reminder"
+                message = "Error. Could not save the reminder"
     elif body[:2] == 'i ':
         if save_idea(str(user.pk),body[2:]):
             message = "Idea saved"
         else:
-            message = "Could not save the idea"
+            message = "Error. Could not save the idea"
+
+    elif body[:2] == 't ':
+        found = re.search("\d+",body[2:])
+        stop = re.search("stop",body[2:])
+        if stop != None:
+            stop_timer(str(user.pk))
+            message = "Timer stopped"
+        else:  
+            if found == None:
+                message = "Error. Either give time in minutes or write stop"
+            else:
+                minutes = int(found.group())
+                if start_timer(str(user.pk),minutes):
+                    message = f"Timer for {minutes}min started"
+                else:
+                    message = f'Error. Another timer already going. Use "t stop" to stop it'
     else:
-        message = "wrong keyword"
+        message = 'Wrong keyword. Use "help" if needed.'
 
     resp = MessagingResponse()
 

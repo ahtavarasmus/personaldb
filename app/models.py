@@ -17,5 +17,8 @@ class Idea(JsonModel):
     user: str = Field(index=True)
     message: str = Field(index=True,full_text_search=True)
 
+class Timer(JsonModel):
+    user: str = Field(index=True)
+    time: int = Field(index=True)
 
 

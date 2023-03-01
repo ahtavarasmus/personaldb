@@ -1,7 +1,8 @@
+from amqp import NotFound
 from . import config,tz
 from flask import session,flash
 from redis_om.model import NotFoundError
-from .models import Reminder,Idea,User
+from .models import Reminder,Idea,User,Timer
 from datetime import datetime,timedelta
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.rest import Client
@@ -56,7 +57,31 @@ def save_idea(user,msg):
     new_idea.save()
     return True
 
-   
+def start_timer(user,minutes):
+    dt = datetime.now().replace(tzinfo=tz)
+    dt += timedelta(minutes=minutes)
+    epoch_time = int(round(dt.timestamp()))
+    try:
+        timer = Timer.find(Timer.user == user).first()
+        if timer:
+            return False
+    except NotFoundError:
+        pass
+
+    new_timer = Timer(user=user,time=epoch_time)
+    new_timer.save()
+    return True
+
+def stop_timer(user):
+    try:
+        timer = Timer.find(Timer.user == user).first()
+        if timer:
+            Timer.delete(timer.pk)
+    except NotFoundError:
+        pass
+
+
+
 
 # ----------------------- OUTPUT ----------------------
 
