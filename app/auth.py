@@ -55,7 +55,11 @@ def signup():
         username = request.form.get('username')
         password = request.form.get('password')
         phone = request.form.get('phone')
-        # how do i do the following?
+        code = request.form.get('code')
+        if code != config.get('SECRET_SIGNUP_CODE'):
+            flash("Wrong signup code.")
+            return redirect(url_for('auth.signup'))
+        # following is spagetti code i know
         try:
             user_exists = User.find(User.username == username).first()
             if user_exists:
