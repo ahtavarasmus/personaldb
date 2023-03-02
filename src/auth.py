@@ -63,11 +63,11 @@ def signup():
         try:
             user_exists = User.find(User.username == username).first()
             if user_exists:
+                print("USER DID EXIST")
                 flash("Username taken already! :/")
                 return redirect(url_for('auth.signup'))
         except:
-            flash("Username taken already! :/")
-            return redirect(url_for('auth.signup'))
+            pass
         user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone,ideas=[])
         user.save()
         user = user.dict()
