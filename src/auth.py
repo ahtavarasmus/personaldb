@@ -62,9 +62,6 @@ def signup():
         # following is spagetti code i know
         try:
             user_exists = User.find(User.username == username).first()
-            if user_exists:
-                flash("Username taken already! :/")
-                return redirect(url_for('auth.signup'))
         except:
             flash("Username taken already! :/")
             return redirect(url_for('auth.signup'))
