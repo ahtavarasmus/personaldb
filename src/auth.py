@@ -40,7 +40,7 @@ def login():
 
         return redirect(url_for('auth.login'))
 
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 
 @auth.route("/signup",methods=['POST','GET'])
@@ -74,7 +74,7 @@ def signup():
         session['user'] = user 
         return redirect(url_for('routes.home'))
 
-    return render_template('signup.html')
+    return render_template('auth/signup.html')
 
 @auth.route("/logout", methods=['GET','POST'])
 def logout():
@@ -130,7 +130,7 @@ def token():
             flash("Wrong code!")
             return redirect(url_for('auth.token'))
     send_code(to)
-    return render_template('token.html')
+    return render_template('auth/token.html')
 
 @auth.route("/forgot", methods=['POST','GET'])
 def forgot():
@@ -151,4 +151,4 @@ def forgot():
 
         
 
-    return render_template('forgot.html')
+    return render_template('auth/forgot.html')
