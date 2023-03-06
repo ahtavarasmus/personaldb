@@ -5,7 +5,7 @@ from twilio.twiml import re
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.twiml.voice_response import VoiceResponse
-from . import celery_app,tz
+from . import tz
 from datetime import datetime, timedelta
 from .messaging import *
 import json

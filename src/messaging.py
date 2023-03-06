@@ -1,12 +1,18 @@
 from amqp import NotFound
-from . import config,tz
 from flask import session,flash
 from redis_om.model import NotFoundError
 from .models import Reminder,Idea,User,Timer
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta,timezone
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.rest import Client
 import random
+import json
+
+with open('/etc/personaldb_config.json') as config_file:
+    config = json.load(config_file)
+
+tz = timezone(timedelta(hours=2))
+
 
 client = Client(config.get('TWILIO_ACCOUNT_SID'),
                     config.get('TWILIO_AUTH_TOKEN'))
