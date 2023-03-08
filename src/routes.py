@@ -5,7 +5,7 @@ from twilio.twiml import re
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.twiml.voice_response import VoiceResponse
-from . import celery_app,tz
+from . import tz
 from datetime import datetime, timedelta
 from .messaging import *
 import json
@@ -105,7 +105,8 @@ def edit_idea(pk):
             flash("Idea edited")
         return redirect(url_for('routes.home'))
 
-    return render_template('edit_idea.html',
+    return render_template('editing/edit_idea.html',
+                           user=user,
                            cur_idea=cur_idea)
 
 
@@ -150,8 +151,9 @@ def edit_reminder(pk):
                 flash("Message changed")
 
         return redirect(url_for('routes.home'))
-    return render_template('edit_reminder.html',
-                            message=rem_message_str,
+    return render_template('editing/edit_reminder.html',
+                           user=user,
+                           message=rem_message_str,
                            reminder_pk=pk
                            )
 

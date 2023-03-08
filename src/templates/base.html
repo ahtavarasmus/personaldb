@@ -20,6 +20,8 @@
                 {% if session.get('user',default=None) != None %}
             <li><a href="/logout">Logout</a></li>
             <li><a href="/settings">Settings</a></li>
+
+            <p>logged in as {{user['username']}}</p>
                 {% else %}
             <li><a href="/login">Login</a></li>
             <li><a href="/signup">SignUp</a></li>

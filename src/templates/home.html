@@ -20,7 +20,6 @@
     {% endfor %}
     </ul>
 </section>
-<p>logged in as {{user.username}}</p>
 <section>
     <form action="/" method="POST">
         <h3>Create a reminder</h3>
@@ -39,9 +38,11 @@
     </form>
     <ul>
     {% for idea in ideas %}
-    <li>{{idea['message']}} 
-        <a href="/delete-idea-{{idea['pk']}}">del </a>
-        <a href="/edit-idea-{{idea['pk']}}">edit</a></li>
+    <li>
+        {{idea['message']}} 
+        <a href="/delete-idea-{{idea['pk']}}">del</a>
+        <a href="/edit-idea-{{idea['pk']}}">edit</a>
+    </li>
     {% endfor %}
     </ul>
 </section>

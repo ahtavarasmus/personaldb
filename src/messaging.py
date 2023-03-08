@@ -1,12 +1,19 @@
 from amqp import NotFound
-from . import config,tz
 from flask import session,flash
 from redis_om.model import NotFoundError
 from .models import Reminder,Idea,User,Timer
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta,timezone
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.rest import Client
 import random
+import json
+
+with open('/etc/personaldb_config.json') as config_file:
+    config = json.load(config_file)
+
+tz = timezone(timedelta(hours=2))
+
+
 
 client = Client(config.get('TWILIO_ACCOUNT_SID'),
                     config.get('TWILIO_AUTH_TOKEN'))
@@ -16,7 +23,6 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 def save_reminder(user_pk,msg,time_str):
     """
     saves a reminder to redis
-
     return: True if success, else False
     """
     try:
@@ -24,9 +30,13 @@ def save_reminder(user_pk,msg,time_str):
     except ValueError:
         return False
     epoch_time = int(round(time_obj.timestamp()))
-    new_reminder = Reminder(user=user_pk,message=msg,time=epoch_time)
+    new_reminder = Reminder(user=user_pk,
+                            message=msg,
+                            time=epoch_time
+                            )
     new_reminder.save()
-    print(new_reminder.pk)
+    pk1 = str(new_reminder.pk)
+    rem = Reminder.find(Reminder.pk == pk1).first()
     return True
 
  
@@ -34,10 +44,8 @@ def delete_all_reminders():
     """
     deletes reminders in redis for ALL USERS
     """
-    print("HEre")
     reminders = Reminder.find().all()
     for reminder in format_reminders(reminders):
-        print("DELETING:",reminder['pk'])
         Reminder.delete(reminder['pk'])
 
 
@@ -47,7 +55,6 @@ def delete_user_reminders():
     """
     reminders = Reminder.find(Reminder.user == session['user']['pk']).all()
     for reminder in format_reminders(reminders):
-        print("DELETING:",reminder['pk'])
         Reminder.delete(reminder['pk'])
 
 
@@ -138,14 +145,17 @@ def all_reminders_this_minute():
 
 def user_all_reminders(user_pk):
     """ gets all reminders current user has """
-    reminders = Reminder.find(
-            Reminder.user == user_pk).all()
-
+    reminders = Reminder.find(Reminder.user == user_pk).all()
     return format_reminders(reminders)
 
 def user_all_ideas(user_pk):
     ideas = Idea.find(Idea.user == user_pk).all()
     return format_ideas(ideas)
+
+def all_reminders():
+    reminders = Reminder.find().all()
+    return format_ideas(reminders)
+
 
 
 
@@ -167,7 +177,9 @@ def format_reminders(reminders):
     for reminder in reminders:
         rem_dict = reminder.dict()
         rem_dict['time'] = datetime.fromtimestamp(rem_dict['time'])
+        print("REMINDER: ",rem_dict['user'])
         response.append(rem_dict)
+
 
     return response
 
