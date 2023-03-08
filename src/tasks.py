@@ -14,7 +14,8 @@ def every_minute():
             user = user.dict()
         except:
             continue
-        text(str((user['phone'])),rem['message'])
+        call(str((user['phone'])),rem['message'])
+        text(str((user['phone'])),str("Reminder. "+rem['message']))
 
 
     # ------------------------TIMER -------------------------------
