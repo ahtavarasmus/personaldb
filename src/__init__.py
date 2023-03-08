@@ -3,7 +3,7 @@ from redis_om import Migrator
 from celery import Celery,Task,shared_task
 from celery.schedules import crontab
 from datetime import datetime,timedelta,timezone
-from .messaging import all_reminders_this_minute
+from .saving_querying import all_reminders_this_minute
 import json
 
 with open('/etc/personaldb_config.json') as config_file:

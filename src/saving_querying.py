@@ -1,6 +1,5 @@
 from flask import session
-from . import tz
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta,timezone
 from .models import Timer
 from redis_om import NotFoundError
 from .models import Reminder,User,Idea
@@ -8,6 +7,7 @@ from .utils import format_timers,format_reminders,format_ideas
 # --------------- SAVING ------------------
 # --------------- DELETING ------------------
 # --------------- QUERYING ------------------
+tz = timezone(timedelta(hours=2))
 
 
 # --------------- SAVING ------------------------------------------------------
