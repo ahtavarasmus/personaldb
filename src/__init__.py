@@ -30,10 +30,12 @@ def create_app():
     with app.app_context():
         from . import routes
         from . import auth
+        from . import editing_routes
         Migrator().run()
 
         app.register_blueprint(routes.routes)
         app.register_blueprint(auth.auth)
+        app.register_blueprint(editing_routes.editing)
         
         return app
 
