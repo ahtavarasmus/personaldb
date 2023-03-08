@@ -5,7 +5,6 @@ from twilio.twiml import re
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.twiml.voice_response import VoiceResponse
-from . import tz
 from datetime import datetime, timedelta
 from .messaging import *
 from .saving_querying import (user_all_reminders,all_reminders_this_minute,
@@ -14,6 +13,7 @@ from .utils import format_ideas
 import json
 import random
 
+tz = timezone(timedelta(hours=2))
 
 routes = Blueprint('routes',__name__,template_folder='templates')
 
