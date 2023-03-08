@@ -1,9 +1,16 @@
+from flask import session
 from . import tz
-from datetime import datetime
+from datetime import datetime,timedelta
+from .models import Timer
+from redis_om import NotFoundError
 from .models import Reminder,User,Idea
-from .messaging import *
-# --------------- SAVING/DELETING STUFF ------------------
+from .utils import format_timers,format_reminders,format_ideas
+# --------------- SAVING ------------------
+# --------------- DELETING ------------------
+# --------------- QUERYING ------------------
 
+
+# --------------- SAVING ------------------------------------------------------
 def save_reminder(user_pk,msg,time_str):
     """
     saves a reminder to redis
@@ -22,25 +29,6 @@ def save_reminder(user_pk,msg,time_str):
     pk1 = str(new_reminder.pk)
     rem = Reminder.find(Reminder.pk == pk1).first()
     return True
-
- 
-def delete_all_reminders():
-    """
-    deletes reminders in redis for ALL USERS
-    """
-    reminders = Reminder.find().all()
-    for reminder in format_reminders(reminders):
-        Reminder.delete(reminder['pk'])
-
-
-def delete_user_reminders():
-    """
-    deletes reminders in redis for CURRENT USER
-    """
-    reminders = Reminder.find(Reminder.user == session['user']['pk']).all()
-    for reminder in format_reminders(reminders):
-        Reminder.delete(reminder['pk'])
-
 
 def save_idea(user,msg):
     print(msg)
@@ -63,14 +51,94 @@ def start_timer(user,minutes):
     new_timer.save()
     return True
 
-def stop_timer(user):
+
+# --------------- DELETING ----------------------------------------------------
+ 
+def delete_all_reminders():
+    """
+    deletes reminders in redis for ALL USERS
+    """
+    reminders = Reminder.find().all()
+    for reminder in format_reminders(reminders):
+        Reminder.delete(reminder['pk'])
+
+
+def delete_user_reminders():
+    """
+    deletes reminders in redis for CURRENT USER
+    """
+    reminders = Reminder.find(Reminder.user == session['user']['pk']).all()
+    for reminder in format_reminders(reminders):
+        Reminder.delete(reminder['pk'])
+
+def stop_timer(user_pk):
     try:
-        timer = Timer.find(Timer.user == user).first()
+        timer = Timer.find(Timer.user == user_pk).first()
         if timer:
             Timer.delete(timer.pk)
     except NotFoundError:
         pass
 
+
+# --------------- QUERYING ----------------------------------------------------
+
+
+def all_reminders_this_minute():
+    """ 
+    gets reminders scheduled for current minute for ALL USERS 
+
+    return: list[dict]
+    """
+    now = datetime.now().replace(tzinfo=tz)
+
+    start = int(round(datetime(
+        now.year,now.month,now.day,now.hour,now.minute,0)
+        .timestamp()))
+
+    end = int(round(
+        datetime(now.year,now.month,now.day,now.hour,now.minute,59)
+        .timestamp()))
+
+    reminders = Reminder.find(
+            (Reminder.time >= start) &
+            (Reminder.time <= end)).all()
+    return format_reminders(reminders)
+
+def all_timers_this_minute():
+    """
+    gets timers scheduled for current minute for ALL USERS
+
+    return: list[dict]
+    """
+    now = datetime.now().replace(tzinfo=tz)
+
+    start = int(round(datetime(
+        now.year,now.month,now.day,now.hour,now.minute,0)
+        .timestamp()))
+
+    end = int(round(
+        datetime(now.year,now.month,now.day,now.hour,now.minute,59)
+        .timestamp()))
+
+    timers = Timer.find(
+            (Timer.time >= start) &
+            (Timer.time <= end)).all()
+
+    return format_timers(timers)
+
+
+def user_all_reminders(user_pk):
+    """ gets all reminders current user has """
+    reminders = Reminder.find(Reminder.user == user_pk).all()
+    return format_reminders(reminders)
+
+def user_all_ideas(user_pk):
+    ideas = Idea.find(Idea.user == user_pk).all()
+    return format_ideas(ideas)
+
+def all_reminders():
+    reminders = Reminder.find().all()
+    return format_ideas(reminders)
 
 
 

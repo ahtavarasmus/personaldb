@@ -8,6 +8,9 @@ from twilio.twiml.voice_response import VoiceResponse
 from . import tz
 from datetime import datetime, timedelta
 from .messaging import *
+from .saving_querying import (user_all_reminders,all_reminders_this_minute,
+save_idea,user_all_ideas,stop_timer,start_timer)
+from .utils import format_ideas
 import json
 import random
 
@@ -100,8 +103,8 @@ def sms_webhook():
         return "user not found",404
     message = ""
     
-    if body[:4] == "help":
-        if body[5:] == "r":
+    if body[0] == "h":
+        if body[2] == "r":
             message = '''"r [body]" -> add reminder,
                         [body] must include a message and date 
                         formatted like "12/2/2054 23:00" somewhere.
@@ -109,7 +112,7 @@ def sms_webhook():
                         
                         "all r" -> get all reminders.
             '''
-        if body[5:] == "i":
+        if body[2] == "i":
             message = '''"i [body]" -> add idea,
                         [body] has the idea.
                         e.g. "i bake more" adds a "bake more" idea.
@@ -119,7 +122,7 @@ def sms_webhook():
                         E.g. "all i with bake" returns every idea 
                         where you used the word "bake".
             '''
-        if body[5:] == "t":
+        if body[2] == "t":
             message = '''"t [body]" -> adds a new timer,
                         [body] must include a minute value.
                         E.g. "t 20min" will add timer for 20 minutes.
@@ -135,7 +138,7 @@ def sms_webhook():
                     "t [body]"->start timer
                     "t stop"  ->stop timer
 
-                    Use "help [x]" to get more info about x->(r,i or t).
+                    Use "h [x]" to get more info about x->(r,i or t).
 
                       
                     "
@@ -201,7 +204,7 @@ def sms_webhook():
                 else:
                     message = f'Error. Another timer already going. Use "t stop" to stop it'
     else:
-        message = 'Wrong keyword. Use "help" if needed.'
+        message = 'Wrong keyword. Type "h" for help.'
 
     resp = MessagingResponse()
 
