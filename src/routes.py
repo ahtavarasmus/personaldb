@@ -106,6 +106,7 @@ def edit_idea(pk):
         return redirect(url_for('routes.home'))
 
     return render_template('editing/edit_idea.html',
+                           user=user,
                            cur_idea=cur_idea)
 
 
@@ -151,7 +152,8 @@ def edit_reminder(pk):
 
         return redirect(url_for('routes.home'))
     return render_template('editing/edit_reminder.html',
-                            message=rem_message_str,
+                           user=user,
+                           message=rem_message_str,
                            reminder_pk=pk
                            )
 

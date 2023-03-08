@@ -1,6 +1,6 @@
 from flask import Flask,session
 from redis_om import Migrator
-from celery import Celery,Task
+from celery import Celery,Task,shared_task
 from celery.schedules import crontab
 from datetime import datetime,timedelta,timezone
 from .messaging import all_reminders_this_minute
@@ -41,6 +41,7 @@ def create_app():
 
 
 def celery_init_app(app: Flask) -> Celery:
+    from . import tasks
     class FlaskTask(Task):
         def __call__(self, *args: object, **kwargs: object) -> object:
             with app.app_context():
@@ -50,13 +51,19 @@ def celery_init_app(app: Flask) -> Celery:
     celery_app.config_from_object(app.config['CELERY'])
     celery_app.conf.update(timezone='Europe/Helsinki')
 
-
     celery_app.set_default()
+
+    celery_app.conf.beat_schedule = {
+        'task-name': {
+            'task':'src.tasks.every_minute',
+            'schedule': timedelta(seconds=60)
+            }
+    }
+    #@celery_app.on_after_configure.connect
+    #def setup_periodic_tasks(sender,**kwargs):
+    #    #from .tasks import every_minute 
+    #    sender.add_periodic_task(crontab(),every_minute.s())
+
     app.extensions["celery"] = celery_app
-
-    @celery_app.on_after_configure.connect
-    def setup_periodic_tasks(sender,**kwargs):
-        from .tasks import every_minute 
-        sender.add_periodic_task(crontab(),every_minute.s())
-
     return celery_app
+

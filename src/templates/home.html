@@ -16,11 +16,11 @@
         {{reminder['time']}} - {{reminder['message']}}
         <a href="/delete-reminder-{{reminder['pk']}}">del</a>
         <a href="/edit-reminder-{{reminder['pk']}}">edit</a>
+        <p>{{reminder['user']}}</p>
     </li>
     {% endfor %}
     </ul>
 </section>
-<p>logged in as {{user.username}}</p>
 <section>
     <form action="/" method="POST">
         <h3>Create a reminder</h3>
