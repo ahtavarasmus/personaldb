@@ -56,7 +56,7 @@ def celery_init_app(app: Flask) -> Celery:
     celery_app.conf.beat_schedule = {
         'task-name': {
             'task':'src.tasks.every_minute',
-            'schedule': timedelta(seconds=60)
+            'schedule': crontab()
             }
     }
     #@celery_app.on_after_configure.connect
