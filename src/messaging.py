@@ -5,6 +5,7 @@ from .models import Reminder,Idea,User,Timer
 from datetime import datetime,timedelta,timezone
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.rest import Client
+from .saving_querying import save_reminder
 import random
 import json
 
@@ -18,79 +19,6 @@ tz = timezone(timedelta(hours=2))
 client = Client(config.get('TWILIO_ACCOUNT_SID'),
                     config.get('TWILIO_AUTH_TOKEN'))
 
-# --------------- SAVING/DELETING STUFF ------------------
-
-def save_reminder(user_pk,msg,time_str):
-    """
-    saves a reminder to redis
-    return: True if success, else False
-    """
-    try:
-        time_obj = datetime.strptime(str(time_str), "%d/%m/%y %H:%M").replace(tzinfo=tz)
-    except ValueError:
-        return False
-    epoch_time = int(round(time_obj.timestamp()))
-    new_reminder = Reminder(user=user_pk,
-                            message=msg,
-                            time=epoch_time
-                            )
-    new_reminder.save()
-    pk1 = str(new_reminder.pk)
-    rem = Reminder.find(Reminder.pk == pk1).first()
-    return True
-
- 
-def delete_all_reminders():
-    """
-    deletes reminders in redis for ALL USERS
-    """
-    reminders = Reminder.find().all()
-    for reminder in format_reminders(reminders):
-        Reminder.delete(reminder['pk'])
-
-
-def delete_user_reminders():
-    """
-    deletes reminders in redis for CURRENT USER
-    """
-    reminders = Reminder.find(Reminder.user == session['user']['pk']).all()
-    for reminder in format_reminders(reminders):
-        Reminder.delete(reminder['pk'])
-
-
-def save_idea(user,msg):
-    print(msg)
-    new_idea = Idea(user=user,message=msg)
-    new_idea.save()
-    return True
-
-def start_timer(user,minutes):
-    dt = datetime.now().replace(tzinfo=tz)
-    dt += timedelta(minutes=minutes)
-    epoch_time = int(round(dt.timestamp()))
-    try:
-        timer = Timer.find(Timer.user == user).first()
-        if timer:
-            return False
-    except NotFoundError:
-        pass
-
-    new_timer = Timer(user=user,time=epoch_time)
-    new_timer.save()
-    return True
-
-def stop_timer(user):
-    try:
-        timer = Timer.find(Timer.user == user).first()
-        if timer:
-            Timer.delete(timer.pk)
-    except NotFoundError:
-        pass
-
-
-
-
-# ----------------------- OUTPUT ----------------------
 
 def call(to,msg):
     """ sends a call to number "to" """
@@ -98,6 +26,7 @@ def call(to,msg):
             twiml='<Response><Say>{}</Say></Response>'.format(msg),
             to=to,
             from_=config.get('TWILIO_PHONE_NUMBER'))
+
 def text(to, msg):
     """ sends a message "msg" to number "to" """
     message = client.messages.create(
@@ -118,70 +47,6 @@ def send_code(to):
     flash("Code sent!")
 
 
-
-
-# --------------------- QUERIES -----------------------
-
-def all_reminders_this_minute():
-    """ 
-    gets reminders scheduled for current minute for ALL USERS 
-
-    return: list[dict]
-    """
-    now = datetime.now().replace(tzinfo=tz)
-
-    start = int(round(datetime(
-        now.year,now.month,now.day,now.hour,now.minute,0)
-        .timestamp()))
-
-    end = int(round(
-        datetime(now.year,now.month,now.day,now.hour,now.minute,59)
-        .timestamp()))
-
-    reminders = Reminder.find(
-            (Reminder.time >= start) &
-            (Reminder.time <= end)).all()
-    return format_reminders(reminders)
-
-def user_all_reminders(user_pk):
-    """ gets all reminders current user has """
-    reminders = Reminder.find(Reminder.user == user_pk).all()
-    return format_reminders(reminders)
-
-def user_all_ideas(user_pk):
-    ideas = Idea.find(Idea.user == user_pk).all()
-    return format_ideas(ideas)
-
-def all_reminders():
-    reminders = Reminder.find().all()
-    return format_ideas(reminders)
-
-
-
-
-# -------------------- UTILITY FUNCTIONS ----------------------
-
-def format_ideas(ideas):
-    response = []
-    for idea in ideas:
-        i_dict = idea.dict()
-        response.append(i_dict)
-    return response
-
-def format_reminders(reminders):
-    """ 
-    Receives a list of reminder json objects
-    and turns them into list of dicts 
-    """
-    response = []
-    for reminder in reminders:
-        rem_dict = reminder.dict()
-        rem_dict['time'] = datetime.fromtimestamp(rem_dict['time'])
-        print("REMINDER: ",rem_dict['user'])
-        response.append(rem_dict)
-
-
-    return response
 
 
 # ------------------- TESTING -----------------------

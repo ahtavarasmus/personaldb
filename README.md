@@ -1,2 +1,2 @@
-personal database and reminder system for my lightphone
+personal database and reminder system for my lightphone.
 

@@ -8,6 +8,9 @@ from twilio.twiml.voice_response import VoiceResponse
 from . import tz
 from datetime import datetime, timedelta
 from .messaging import *
+from .saving_querying import (user_all_reminders,all_reminders_this_minute,
+save_idea,user_all_ideas,stop_timer,start_timer)
+from .utils import format_ideas
 import json
 import random
 
@@ -84,101 +87,6 @@ def settings():
     return render_template('settings.html',
                            user=user
                            )
-@routes.route("/edit-idea-<pk>", methods=['POST','GET'])
-def edit_idea(pk):
-    user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
-        return redirect(url_for('routes.home'))
-
-    idea = Idea.find(Idea.pk == pk).first()
-    cur_idea = idea.dict()
-    if request.method == 'POST':
-        new_idea = request.form.get('idea')
-        if new_idea == "":
-            Idea.delete(pk)
-            flash("Idea deleted")
-        else:
-            print("NEW IDEA: ",new_idea)
-            idea.message = new_idea
-            idea.save()
-            flash("Idea edited")
-        return redirect(url_for('routes.home'))
-
-    return render_template('editing/edit_idea.html',
-                           user=user,
-                           cur_idea=cur_idea)
-
-
-@routes.route("/edit-reminder-<pk>", methods=['POST','GET'])
-def edit_reminder(pk):
-    user = session.get('user',default=dict())
-    if not user:
-        flash("login required")
-        return redirect(url_for('routes.home'))
-
-    try: 
-        reminder = Reminder.find(Reminder.pk == pk).first()
-    except NotFoundError:
-        flash("reminder not found")
-        return redirect(url_for('routes.home'))
-
-    rem_message_str = reminder.dict()['message']
-
-    if request.method == 'POST':
-        if 'time' in request.form:
-            time = request.form.get('time')
-            try:
-                time_obj = datetime.strptime(str(time),
-                    "%d/%m/%y %H:%M").replace(tzinfo=tz)
-            except ValueError as e:
-                print(e)
-                flash("Date format not right")
-                return render_template('edit_reminder.html',
-                                       reminder_pk=pk)
-            epoch_time = int(round(time_obj.timestamp()))
-            reminder.time = epoch_time
-            reminder.save()
-            flash("Time changed")
-        elif 'msg' in request.form:
-            msg = request.form.get('msg')
-            if msg == "":
-                Reminder.delete(pk)
-                flash("Reminder Deleted")
-            else: 
-                reminder.message = msg
-                reminder.save()
-                flash("Message changed")
-
-        return redirect(url_for('routes.home'))
-    return render_template('editing/edit_reminder.html',
-                           user=user,
-                           message=rem_message_str,
-                           reminder_pk=pk
-                           )
-
-@routes.route("/delete-idea-<pk>")
-def delete_idea(pk):
-
-    user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
-        return redirect(url_for('routes.home'))
-    Idea.delete(pk)
-    flash("idea deleted")
-    return redirect(url_for('routes.home'))
-    
-@routes.route("/delete-reminder-<pk>")
-def delete_reminder(pk):
-
-    user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
-        return redirect(url_for('routes.home'))
-    Reminder.delete(pk)
-    flash("reminder delete")
-    return redirect(url_for('routes.home'))
-
 
 @routes.route("/sms-webhook",methods=['POST'])
 def sms_webhook():
@@ -195,8 +103,8 @@ def sms_webhook():
         return "user not found",404
     message = ""
     
-    if body[:4] == "help":
-        if body[5:] == "r":
+    if body[0] == "h":
+        if body[2] == "r":
             message = '''"r [body]" -> add reminder,
                         [body] must include a message and date 
                         formatted like "12/2/2054 23:00" somewhere.
@@ -204,7 +112,7 @@ def sms_webhook():
                         
                         "all r" -> get all reminders.
             '''
-        if body[5:] == "i":
+        if body[2] == "i":
             message = '''"i [body]" -> add idea,
                         [body] has the idea.
                         e.g. "i bake more" adds a "bake more" idea.
@@ -214,7 +122,7 @@ def sms_webhook():
                         E.g. "all i with bake" returns every idea 
                         where you used the word "bake".
             '''
-        if body[5:] == "t":
+        if body[2] == "t":
             message = '''"t [body]" -> adds a new timer,
                         [body] must include a minute value.
                         E.g. "t 20min" will add timer for 20 minutes.
@@ -230,7 +138,7 @@ def sms_webhook():
                     "t [body]"->start timer
                     "t stop"  ->stop timer
 
-                    Use "help [x]" to get more info about x->(r,i or t).
+                    Use "h [x]" to get more info about x->(r,i or t).
 
                       
                     "
@@ -296,7 +204,7 @@ def sms_webhook():
                 else:
                     message = f'Error. Another timer already going. Use "t stop" to stop it'
     else:
-        message = 'Wrong keyword. Use "help" if needed.'
+        message = 'Wrong keyword. Type "h" for help.'
 
     resp = MessagingResponse()
 
