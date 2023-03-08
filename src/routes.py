@@ -85,29 +85,6 @@ def settings():
                            user=user
                            )
 
-@routes.route("/delete-idea-<pk>")
-def delete_idea(pk):
-
-    user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
-        return redirect(url_for('routes.home'))
-    Idea.delete(pk)
-    flash("idea deleted")
-    return redirect(url_for('routes.home'))
-    
-@routes.route("/delete-reminder-<pk>")
-def delete_reminder(pk):
-
-    user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
-        return redirect(url_for('routes.home'))
-    Reminder.delete(pk)
-    flash("reminder delete")
-    return redirect(url_for('routes.home'))
-
-
 @routes.route("/sms-webhook",methods=['POST'])
 def sms_webhook():
 
