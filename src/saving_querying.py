@@ -37,8 +37,10 @@ def save_idea(user,msg):
     return True
 
 def start_timer(user,minutes):
-    dt = datetime.now().replace(tzinfo=tz)
+    #dt = datetime.now().replace(tzinfo=tz)
+    dt = datetime.now()
     dt += timedelta(minutes=minutes)
+    print("HOUR ",dt.hour)
     epoch_time = int(round(dt.timestamp()))
     try:
         timer = Timer.find(Timer.user == user).first()
