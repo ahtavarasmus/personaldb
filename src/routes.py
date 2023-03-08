@@ -9,7 +9,7 @@ from . import tz
 from datetime import datetime, timedelta
 from .messaging import *
 from .saving_querying import (user_all_reminders,all_reminders_this_minute,
-save_idea,user_all_ideas,stop_timer,start_timer)
+save_idea,user_all_ideas,stop_timer,start_timer,all_timers)
 from .utils import format_ideas
 import json
 import random
@@ -45,9 +45,11 @@ def home():
         reminders = session.get(
             'reminders',default=user_all_reminders(user['pk']))
         ideas = user_all_ideas(user['pk'])
+        timers = all_timers()
     else:
         reminders = []
         ideas = []
+        timers = []
 
 
         
@@ -56,6 +58,7 @@ def home():
                            session=session,
                            user=user,
                            reminders=reminders,
+                           timers=timers,
                            ideas=ideas
                            )
 

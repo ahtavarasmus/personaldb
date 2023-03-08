@@ -140,5 +140,9 @@ def all_reminders():
     reminders = Reminder.find().all()
     return format_ideas(reminders)
 
+def all_timers():
+    timers = Timer.find().all()
+    return format_timers(timers)
+    
 
 

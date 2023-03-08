@@ -45,6 +45,11 @@
     </li>
     {% endfor %}
     </ul>
+    <ul>
+    {% for timer in timers %}
+        <li>{{timer['time']}}</li>
+    {% endfor %}
+    </ul>
 </section>
 
 {% else %}
