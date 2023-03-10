@@ -3,7 +3,7 @@ from redis_om import Migrator
 from celery import Celery,Task,shared_task
 from celery.schedules import crontab
 from datetime import datetime,timedelta,timezone
-from .saving_querying import all_reminders_this_minute
+from .utils import *
 import json
 
 with open('/etc/personaldb_config.json') as config_file:
@@ -30,12 +30,10 @@ def create_app():
     with app.app_context():
         from . import routes
         from . import auth
-        from . import editing
         Migrator().run()
 
         app.register_blueprint(routes.routes)
         app.register_blueprint(auth.auth)
-        app.register_blueprint(editing.editing)
         
         return app
 
