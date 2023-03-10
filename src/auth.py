@@ -4,7 +4,7 @@ from werkzeug.security import (check_password_hash, generate_password_hash)
 from redis_om.model.token_escaper import re
 from .models import User
 from . import config
-from .messaging import *
+from .utils import *
 import random,time
 
 auth = Blueprint('auth',__name__,template_folder='templates')
