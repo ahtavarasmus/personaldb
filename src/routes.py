@@ -45,11 +45,9 @@ def home():
         reminders = session.get(
             'reminders',default=user_all_reminders(user['pk']))
         ideas = user_all_ideas(user['pk'])
-        timers = all_timers()
     else:
         reminders = []
         ideas = []
-        timers = []
 
 
         
@@ -58,7 +56,6 @@ def home():
                            session=session,
                            user=user,
                            reminders=reminders,
-                           timers=timers,
                            ideas=ideas
                            )
 
