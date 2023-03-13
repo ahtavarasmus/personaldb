@@ -8,7 +8,7 @@ import json
 import random
 
 # Internal
-from .models import Reminder,User,Idea,Timer
+from .models import Reminder,User,Idea,Timer,Note,NoteBag
 from datetime import datetime, time,timedelta,timezone
 
 # specific config
@@ -110,12 +110,23 @@ def start_timer(user,minutes):
         if timer:
             return False
     except NotFoundError:
-        pass
+        return False
 
     new_timer = Timer(user=user,time=epoch_time)
     new_timer.save()
     return True
 
+def save_note(user_pk,bag_pk,message):
+    """ saves a note to the bag given for the user given """
+    new_note = Note(user=user_pk,bag=bag_pk,message=message)
+    new_note.save()
+    return True
+
+def create_notebag(user_pk,bag_name):
+    """ returns the pk of the bag created """
+    new_bag = NoteBag(user=user_pk,name=bag_name)
+    new_bag.save()
+    return new_bag.pk 
 
 # --------------- DELETING -----------------------------------------------
 #-------------------------------------------------------------------------
@@ -144,6 +155,8 @@ def stop_timer(user_pk):
             Timer.delete(timer.pk)
     except NotFoundError:
         pass
+
+
 
 
 # --------------- QUERYING -----------------------------------------------

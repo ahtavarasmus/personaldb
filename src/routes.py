@@ -45,6 +45,10 @@ def home():
         elif "idea" in request.form:
             msg = request.form['message']
             save_idea(session['user']['pk'],msg)
+        elif "notebag" in request.form:
+            pass
+        elif "note" in request.form:
+            pass
         
         return redirect(url_for('routes.home'))
 
