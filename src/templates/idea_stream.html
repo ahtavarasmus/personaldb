@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{username}}'s Idea Stream</title>
+    </head>
+    <body>
+        <content>
+        <ul>
+        {% for idea in ideas %}
+        <li>{{idea['time']}} - {{idea['message']}}</li> 
+        {% endfor %}
+        </ul>
+        </content>
+    </body>
+</html>

@@ -3,12 +3,13 @@ from flask import session,flash
 from twilio.rest import Client
 from redis_om import NotFoundError
 from werkzeug.security import (check_password_hash, generate_password_hash)
+from operator import itemgetter
 import json
 import random
 
 # Internal
 from .models import Reminder,User,Idea,Timer
-from datetime import datetime,timedelta,timezone
+from datetime import datetime, time,timedelta,timezone
 
 # specific config
 tz = timezone(timedelta(hours=2))
@@ -38,7 +39,9 @@ def format_ideas(ideas):
     response = []
     for idea in ideas:
         i_dict = idea.dict()
+        i_dict['time'] = datetime.fromtimestamp(i_dict['time'])
         response.append(i_dict)
+    response = sorted(response, key=itemgetter('time'), reverse=True)
     return response
 
 def format_reminders(reminders):
@@ -50,9 +53,9 @@ def format_reminders(reminders):
     for reminder in reminders:
         rem_dict = reminder.dict()
         rem_dict['time'] = datetime.fromtimestamp(rem_dict['time'])
-        print("REMINDER: ",rem_dict['user'])
         response.append(rem_dict)
 
+    response = sorted(response, key=itemgetter('time'), reverse=True)
     return response
 
 def format_timers(timers):
@@ -90,7 +93,9 @@ def save_reminder(user_pk,msg,time_str):
 
 def save_idea(user,msg):
     print(msg)
-    new_idea = Idea(user=user,message=msg)
+    dt = datetime.now()
+    epoch_time = int(round(dt.timestamp()))
+    new_idea = Idea(user=user,message=msg,time=epoch_time)
     new_idea.save()
     return True
 

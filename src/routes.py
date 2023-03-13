@@ -7,6 +7,7 @@ from werkzeug.security import (check_password_hash, generate_password_hash)
 from twilio.twiml.voice_response import VoiceResponse
 from datetime import datetime, timedelta
 from .utils import *
+from .models import User,Settings,Idea
 import json
 import random
 
@@ -19,6 +20,16 @@ routes = Blueprint('routes',__name__,template_folder='templates')
 def home():
 
     user = session.get('user',default={})
+    # Left this here for reference for future migrations
+    """
+    ideas = Idea.find().all()
+    for i in ideas:
+        i_dict = i.dict()
+        if not hasattr(i_dict,'time'):
+            i.time = int(round(datetime.now().timestamp()))
+            i.save()
+            """
+
 
     if request.method == 'POST':
         if "test-data" in request.form:
@@ -65,7 +76,9 @@ def settings():
         flash('login required')
         return redirect(url_for('routes.home'))
 
+    
 
+    print("User settings",user['settings'])
     if request.method == 'POST':
         if "new_phone" in request.form:
             new_phone = request.form.get('new_phone')
@@ -80,6 +93,26 @@ def settings():
             u.save()
             flash("Password changed!")
             return redirect(url_for('routes.settings'))
+        elif "idea-stream" in request.form:
+            ans = request.form.get('idea-stream')
+            if user['settings']['idea_stream_public']:
+                user['settings']['idea_stream_public'] = False
+                u = User.find(User.pk == user['pk']).first()
+                settings = Settings(**u.settings)
+                settings.idea_stream_public = False
+                u.settings = settings
+                u.save()
+                flash('Ideas are now private')
+                return redirect(url_for('routes.settings'))
+            else:
+                user['settings']['idea_stream_public'] = True
+                u = User.find(User.pk == user['pk']).first()
+                settings = Settings(**u.settings)
+                settings.idea_stream_public = True
+                u.settings = settings
+                u.save()
+                flash('Ideas are now public')
+                return redirect(url_for('routes.settings'))
         
     
     return render_template('settings.html',
@@ -306,6 +339,10 @@ def sms_webhook():
                     message = f"Timer for {minutes}min started"
                 else:
                     message = f'Error. Another timer already going. Use "t stop" to stop it'
+    elif body[:2] == 'n ':
+        # interface for adding notes
+        pass
+
     else:
         message = 'Wrong keyword. Type "h" for help.'
 
@@ -313,3 +350,18 @@ def sms_webhook():
 
     resp.message(message)
     return str(resp)
+
+
+@routes.route("/<username>-ideas",methods=['POST','GET'])
+def idea_stream(username):
+    
+    try:
+        user = User.find(User.username == username).first()
+    except NotFoundError:
+        return 'no user found'
+    if not user.settings['idea_stream_public']:
+        return "user's idea stream is off"
+    ideas = user_all_ideas(user.pk)
+    return render_template('idea_stream.html',username=username,ideas=ideas)
+
+

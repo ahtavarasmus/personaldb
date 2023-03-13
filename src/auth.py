@@ -1,8 +1,9 @@
+from collections.abc import Set
 from flask import (Blueprint, render_template,request,flash,url_for,redirect,session)
 from flask import current_app as app
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from redis_om.model.token_escaper import re
-from .models import User
+from .models import User,Settings
 from . import config
 from .utils import *
 import random,time
@@ -13,7 +14,6 @@ auth = Blueprint('auth',__name__,template_folder='templates')
 @auth.route("/login", methods=['POST','GET'])
 def login():
     user = session.get('user',default={})
-
     if user:
         return redirect(url_for('routes.home'))
 
@@ -31,10 +31,13 @@ def login():
         except:
             flash("No username found! Maybe signup?")
             return redirect(url_for('auth.login'))
-        
-        user = user.dict()
-        if check_password_hash(str(user['password']),str(password)):
-            session['user'] = user
+
+
+        user_dict = user.dict()
+
+
+        if check_password_hash(str(user_dict['password']),str(password)):
+            session['user'] = user_dict
             return redirect(url_for('routes.home'))
         flash("Wrong password!")
 
@@ -68,7 +71,9 @@ def signup():
                 return redirect(url_for('auth.signup'))
         except:
             pass
-        user = User(username=username,password=generate_password_hash(password, method='sha256'),phone=phone,ideas=[])
+        user = User(username=username,password=
+                generate_password_hash(password,method='sha256'),
+                    phone=phone,ideas=[],settings=Settings())
         user.save()
         user = user.dict()
         session['user'] = user 

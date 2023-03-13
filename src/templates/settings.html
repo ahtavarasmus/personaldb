@@ -15,4 +15,12 @@
             <input type="submit" name="change-password" value="Change Password">
         </form>
     </section>
+    <br>
+    <section>
+        <form action="/settings" method="POST">
+            <label for="idea-stream">Idea stream publicity: {{user['settings']['idea_stream_public']}}</label>
+            <input type="submit" name="idea-stream" value="Change">
+        </form>
+    </section>
+
 {% endblock %}
