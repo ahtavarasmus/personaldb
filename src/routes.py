@@ -29,8 +29,6 @@ def home():
             i.time = int(round(datetime.now().timestamp()))
             i.save()
             """
-    users = User.find().all()
-    for user in users:
 
 
 

@@ -71,13 +71,17 @@ def signup():
                 return redirect(url_for('auth.signup'))
         except:
             pass
+        if not password: 
+            flash("Please give password")
+            return redirect(url_for('auth.signup'))
+
         user = User(username=username,password=
                 generate_password_hash(password,method='sha256'),
-                    phone=phone,ideas=[],settings=Settings())
+                    phone=phone,ideas=[],settings=Settings(),
+                    notebags=[NoteBag(name="main")])
         user.save()
-        default_notebag = NoteBag(user=user.pk,name="main")
-        default_notebag.save()
         user = user.dict()
+        print(user)
         session['user'] = user 
         return redirect(url_for('routes.home'))
 

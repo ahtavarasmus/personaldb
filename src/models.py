@@ -4,7 +4,7 @@ from datetime import datetime
 
 class NoteBag(EmbeddedJsonModel):
     name: str = Field(index=True)
-    notes: List[str] = Field(index=True)
+    notes: List[str] = Field(index=True,default=[])
 
 
 class Settings(EmbeddedJsonModel):
@@ -14,8 +14,8 @@ class User(JsonModel):
     username: str = Field(index=True)
     password: str = Field(index=True)
     phone: str = Field(index=True)
-    ideas: List[str] = Field(index=True) # on halt atm
-    notebags: List[NoteBag] = Field(index=True)
+    ideas: List[str] = Field(index=True,default=[]) # on halt atm
+    notebags: List[NoteBag] = Field(index=True,default=[NoteBag(name="main")])
     settings: Settings = Field(default=Settings())
 
 class Reminder(JsonModel):
