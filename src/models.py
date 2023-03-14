@@ -1,5 +1,5 @@
 from redis_om import (Field,JsonModel,EmbeddedJsonModel)
-from typing import List,Dict
+from typing import List
 from datetime import datetime
 
 class NoteBag(EmbeddedJsonModel):
@@ -14,7 +14,6 @@ class User(JsonModel):
     username: str = Field(index=True)
     password: str = Field(index=True)
     phone: str = Field(index=True)
-    ideas: List[str] = Field(index=True,default=[]) # on halt atm
     notebags: List[NoteBag] = Field(index=True,default=[NoteBag(name="main")])
     settings: Settings = Field(default=Settings())
 
@@ -31,10 +30,5 @@ class Idea(JsonModel):
 class Timer(JsonModel):
     user: str = Field(index=True)
     time: int = Field(index=True)
-class Note(JsonModel):
-    user: str = Field(index=True)
-    bag: str = Field(index=True)
-    message: str = Field(index=True)
-    time: int = Field(index=True,default=int(round(datetime.now().timestamp())))
-    
+   
 

@@ -30,6 +30,10 @@ def home():
             i.save()
             """
 
+    u = User.find().all()
+    print(u)
+    i = Idea.find().all()
+    print(i)
 
 
     if request.method == 'POST':

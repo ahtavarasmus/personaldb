@@ -77,12 +77,11 @@ def signup():
 
         user = User(username=username,password=
                 generate_password_hash(password,method='sha256'),
-                    phone=phone,ideas=[],settings=Settings(),
-                    notebags=[NoteBag(name="main")])
+                    phone=phone)
         user.save()
-        user = user.dict()
-        print(user)
-        session['user'] = user 
+        user_dict = user.dict()
+        print(user_dict)
+        session['user'] = user_dict
         return redirect(url_for('routes.home'))
 
     return render_template('auth/signup.html',user=user)
