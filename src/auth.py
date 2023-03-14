@@ -91,6 +91,7 @@ def logout():
     if 'user' in session:
         flash('Logged out!')
         session.pop('user')
+        #session.pop('user_obj')
     return redirect(url_for('auth.login'))
 
 @auth.route("/token", methods=['POST','GET'])
