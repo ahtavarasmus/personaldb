@@ -75,10 +75,14 @@ def signup():
             flash("Please give password")
             return redirect(url_for('auth.signup'))
 
+
         user = User(username=username,password=
                 generate_password_hash(password,method='sha256'),
                     phone=phone)
         user.save()
+        #user_settings = Settings()
+        #user.settings = user_settings
+        #user.save()
         user_dict = user.dict()
         print(user_dict)
         session['user'] = user_dict
@@ -91,7 +95,6 @@ def logout():
     if 'user' in session:
         flash('Logged out!')
         session.pop('user')
-        #session.pop('user_obj')
     return redirect(url_for('auth.login'))
 
 @auth.route("/token", methods=['POST','GET'])
