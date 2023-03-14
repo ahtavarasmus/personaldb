@@ -32,6 +32,17 @@
     </form>
     <ul>
         {% for notebag in notebags %}
+        <li>
+            <form action="/note-to-{{notebag['pk']}}" method="POST">
+            <input type="text" name="note" placeholder="note to bag: {{notebag['name']}}">
+            <input type="submit" name="note" value="Add">
+            </form>
+            {% for note in notebag['notes'] %}
+            <ul>
+                <li>{{note['time']}} - {{note['message']}}</li>
+            </ul>
+            {% endfor %}
+        </li>
         {% endfor %}
     </ul>
 </section>

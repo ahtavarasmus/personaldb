@@ -30,11 +30,6 @@ def home():
             i.save()
             """
 
-    u = User.find().all()
-    print(u)
-    i = Idea.find().all()
-    print(i)
-
 
     if request.method == 'POST':
         if "test-data" in request.form:
@@ -50,10 +45,10 @@ def home():
         elif "idea" in request.form:
             msg = request.form['message']
             save_idea(session['user']['pk'],msg)
-        elif "notebag" in request.form:
-            pass
-        elif "note" in request.form:
-            pass
+        elif "bag-name" in request.form:
+            name = request.form.get("bag-name")
+            print(name)
+            save_notebag(user['pk'], name)
         
         return redirect(url_for('routes.home'))
 
@@ -63,9 +58,11 @@ def home():
         reminders = session.get(
             'reminders',default=user_all_reminders(user['pk']))
         ideas = user_all_ideas(user['pk'])
+        notebags = user_all_notebags(user['pk'])
     else:
         reminders = []
         ideas = []
+        notebags = []
 
 
         
@@ -74,7 +71,8 @@ def home():
                            session=session,
                            user=user,
                            reminders=reminders,
-                           ideas=ideas
+                           ideas=ideas,
+                           notebags=notebags
                            )
 
     
@@ -129,8 +127,25 @@ def settings():
                            )
 
 
-# -------------------------- EDITING ---------------------------------
+# -------------------------- EDITING/SAVING --------------------------
 # --------------------------------------------------------------------
+
+@routes.route("/note-to-<bag_pk>",methods=['POST'])
+def save_note_to_bag(bag_pk):
+    user = session.get('user',default={})
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
+    message = request.form.get('note')
+    if message:
+        if save_note(user['pk'], bag_pk, message):
+            flash("note saved!")
+        else:
+            flash("error saving the note")
+    else:
+        flash("note can't be empty")
+    return redirect(url_for('routes.home'))
 
 @routes.route("/edit-idea-<pk>", methods=['POST','GET'])
 def edit_idea(pk):

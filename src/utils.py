@@ -1,5 +1,6 @@
 # External
 from flask import session,flash
+from pydantic import NonNegativeFloat
 from twilio.rest import Client
 from redis_om import NotFoundError
 from werkzeug.security import (check_password_hash, generate_password_hash)
@@ -8,7 +9,7 @@ import json
 import random
 
 # Internal
-from .models import Reminder,User,Idea,Timer
+from .models import Reminder,User,Idea,Timer,Note,NoteBag
 from datetime import datetime, time,timedelta,timezone
 
 # specific config
@@ -69,6 +70,20 @@ def format_timers(timers):
 
     return response
 
+def format_notebags(notebags):
+    response = []
+    for bag in notebags:
+        bag_dict = bag.dict()
+        for note in bag_dict['notes']:
+            note['time'] = datetime.fromtimestamp(int(note['time']))
+
+        response.append(bag_dict)
+
+    # sort
+    for bag in response:
+        bag['notes'] = sorted(bag['notes'],key=itemgetter('time'),reverse=True)
+
+    return response
 
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
@@ -115,6 +130,42 @@ def start_timer(user,minutes):
     new_timer = Timer(user=user,time=epoch_time)
     new_timer.save()
     return True
+
+def save_notebag(user_pk, name):
+    try:
+        user = User.find(User.pk == user_pk).first()
+    except NotFoundError:
+        return False
+
+    user.master_notebag.notebags.append(NoteBag(name=name))    
+    print(user.master_notebag.notebags[0])
+    user.save()
+    if "user" in session:
+        session['user'] = user.dict()
+    return True
+
+def save_note(user_pk, bag_pk, message):
+    try:
+        user = User.find(User.pk == user_pk).first()
+    except NotFoundError:
+        return False
+    time = str(round(datetime.now().timestamp()))
+
+    found = False
+    for bag in user.master_notebag.notebags:
+        if bag.pk == bag_pk:
+            bag.notes.append(Note(message=message,time=time))
+            user.save()
+            if "user" in session:
+                session['user'] = user.dict()
+
+            found = True
+    if found:
+        return True
+    return False
+
+
+
 
 # --------------- DELETING -----------------------------------------------
 #-------------------------------------------------------------------------
@@ -212,6 +263,9 @@ def all_timers():
     timers = Timer.find().all()
     return format_timers(timers)
     
+def user_all_notebags(user_pk):
+    notebags = User.find(User.pk == user_pk).first().master_notebag.notebags
+    return format_notebags(notebags)
 
 # ------------------------ SENDING ---------------------------------
 #-------------------------------------------------------------------
