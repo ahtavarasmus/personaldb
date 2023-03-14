@@ -43,7 +43,7 @@ def login():
 
         return redirect(url_for('auth.login'))
 
-    return render_template('auth/login.html')
+    return render_template('auth/login.html',user=user)
 
 
 @auth.route("/signup",methods=['POST','GET'])
@@ -75,11 +75,13 @@ def signup():
                 generate_password_hash(password,method='sha256'),
                     phone=phone,ideas=[],settings=Settings())
         user.save()
+        default_notebag = NoteBag(user=user.pk,name="main")
+        default_notebag.save()
         user = user.dict()
         session['user'] = user 
         return redirect(url_for('routes.home'))
 
-    return render_template('auth/signup.html')
+    return render_template('auth/signup.html',user=user)
 
 @auth.route("/logout", methods=['GET','POST'])
 def logout():
@@ -135,7 +137,7 @@ def token():
             flash("Wrong code!")
             return redirect(url_for('auth.token'))
     send_code(to)
-    return render_template('auth/token.html')
+    return render_template('auth/token.html',user=user)
 
 @auth.route("/forgot", methods=['POST','GET'])
 def forgot():

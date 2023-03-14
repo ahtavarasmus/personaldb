@@ -2,6 +2,11 @@ from redis_om import (Field,JsonModel,EmbeddedJsonModel)
 from typing import List,Dict
 from datetime import datetime
 
+class NoteBag(EmbeddedJsonModel):
+    name: str = Field(index=True)
+    notes: List[str] = Field(index=True)
+
+
 class Settings(EmbeddedJsonModel):
     idea_stream_public: bool = Field(index=True,default=False)
 
@@ -10,7 +15,8 @@ class User(JsonModel):
     password: str = Field(index=True)
     phone: str = Field(index=True)
     ideas: List[str] = Field(index=True) # on halt atm
-    #settings: Settings = Field(default=Settings())
+    notebags: List[NoteBag] = Field(index=True)
+    settings: Settings = Field(default=Settings())
 
 class Reminder(JsonModel):
     user: str = Field(index=True)
@@ -25,11 +31,6 @@ class Idea(JsonModel):
 class Timer(JsonModel):
     user: str = Field(index=True)
     time: int = Field(index=True)
-
-class NoteBag(JsonModel):
-    user: str = Field(index=True)
-    name: str = Field(index=True)
-
 class Note(JsonModel):
     user: str = Field(index=True)
     bag: str = Field(index=True)
