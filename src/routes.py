@@ -1,10 +1,8 @@
-from types import MethodDescriptorType
-from flask import Blueprint, render_template,request,redirect,url_for,session,flash
+from flask import (Blueprint, render_template,request,redirect,url_for,session,flash)
 from flask_login import login_required, current_user
 from twilio.twiml import re
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
-from twilio.twiml.voice_response import VoiceResponse
 from datetime import datetime, timedelta
 from .utils import *
 from .models import User,Settings,Idea
@@ -21,44 +19,22 @@ def home():
 
     user = session.get('user',default={})
     # Left this here for reference for future migrations
-    """
-    ideas = Idea.find().all()
-    for i in ideas:
-        i_dict = i.dict()
-        if not hasattr(i_dict,'time'):
-            i.time = int(round(datetime.now().timestamp()))
-            i.save()
-            """
+    #ideas = Idea.find().all()
+    #for i in ideas:
+    #    i_dict = i.dict()
+    #    if not hasattr(i_dict,'time'):
+    #        i.time = int(round(datetime.now().timestamp()))
+    #        i.save()
 
 
     if request.method == 'POST':
-        if "test-data" in request.form:
-            load_test_data()
-        elif "all" in request.form:
-            session['reminders'] = user_all_reminders(user['pk'])
-        elif "this-minute" in request.form:
-            session['reminders'] = all_reminders_this_minute()
-        elif "reminder" in request.form:
-            msg = request.form['message']
-            time_str = request.form['time']
-            save_reminder(session['user']['pk'],msg,time_str)
-        elif "idea" in request.form:
-            msg = request.form['message']
-            save_idea(session['user']['pk'],msg)
-        elif "bag-name" in request.form:
-            name = request.form.get("bag-name")
-            print(name)
-            save_notebag(user['pk'], name)
-        
+        handle_request_form(request.form, user['pk'])
         return redirect(url_for('routes.home'))
 
 
 
     if user:
-        reminders = session.get(
-            'reminders',default=user_all_reminders(user['pk']))
-        ideas = user_all_ideas(user['pk'])
-        notebags = user_all_notebags(user['pk'])
+        reminders, ideas, notebags = get_user_data(user['pk'])
     else:
         reminders = []
         ideas = []

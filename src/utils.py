@@ -32,6 +32,33 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 # ----------------------- UTILITY ----------------------------------------
 #-------------------------------------------------------------------------
 
+def get_user_data(user_pk):
+    reminders = user_all_reminders(user_pk)
+    ideas = user_all_ideas(user_pk)
+    notebags = user_all_notebags(user_pk)
+
+    return reminders, ideas, notebags
+
+def handle_request_form(request_form, user_pk):
+    if "test-data" in request_form:
+        load_test_data()
+    elif "all" in request_form:
+        session['reminders'] = user_all_reminders(user_pk)
+    elif "this-minute" in request_form:
+        session['reminders'] = all_reminders_this_minute()
+    elif "reminder" in request_form:
+        msg = request_form['message']
+        time_str = request_form['time']
+        save_reminder(user_pk, msg, time_str)
+    elif "idea" in request_form:
+        msg = request_form['message']
+        save_idea(user_pk, msg)
+    elif "bag-name" in request_form:
+        name = request_form.get("bag-name")
+        print(name)
+        save_notebag(user_pk, name)
+
+
 def format_ideas(ideas):
     """
     Receives a list of idea json objects
