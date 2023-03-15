@@ -2,7 +2,7 @@
 {% block title %}Edit idea{% endblock %}
 {% block content %}
 <form action="/edit-idea-{{cur_idea['pk']}}" method="POST">
-    <input type="text" name="idea" value="{{cur_idea['message']}}">
+    <textarea type="text" name="idea">{{cur_idea['message']}}</textarea>
     <input type="submit" name="idea">
 </form>
 {% endblock %}

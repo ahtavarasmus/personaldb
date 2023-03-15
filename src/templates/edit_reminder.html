@@ -4,7 +4,7 @@
 <section>   
     <form action="/edit-reminder-{{reminder_pk}}" method="POST">
         <label for="msg">Message</label>
-        <input name="msg" type="text" value="{{message}}">
+        <textarea type="text" name="msg">{{message}}</textarea>
         <input name="msg" type="submit" value="Confirm">
     </form>
     <form action="/edit-reminder-{{reminder_pk}}" method="POST">

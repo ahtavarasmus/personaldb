@@ -6,7 +6,7 @@
     <form action="/" method="POST">
         <h3>Create a reminder</h3>
         <label for="message">Message</label>
-        <input type="text" name="message" id="message">
+        <textarea type="text" name="message"></textarea>
         <label for="time">Time</label>
         <input type="text" name="time" id="time">
         <button type="submit" name="reminder">Add</button>
@@ -34,7 +34,7 @@
         {% for notebag in notebags %}
         <li>
             <form action="/note-to-{{notebag['pk']}}" method="POST">
-            <input type="text" name="note" placeholder="note to bag: {{notebag['name']}}">
+            <textarea type="text" name="note" placeholder="note to bag: {{notebag['name']}}"></textarea>
             <input type="submit" name="note" value="Add">
             </form>
             {% for note in notebag['notes'] %}
@@ -50,8 +50,8 @@
 <section>
     <form action="/" method="POST">
         <h3>Save an Idea:</h3>
-        <input type="text" name="message" id="message">
-        <button type="submit" name="idea">Add</button>
+        <textarea type="text" name="message" placeholder="type here"></textarea>
+        <input type="submit" name="idea" value="Add">
     </form>
     <ul>
     {% for idea in ideas %}
