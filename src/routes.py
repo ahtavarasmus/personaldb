@@ -102,21 +102,17 @@ def settings():
             return redirect(url_for('routes.settings'))
         elif "idea-stream" in request.form:
             ans = request.form.get('idea-stream')
-            if user['settings']['idea_stream_public']:
-                user['settings']['idea_stream_public'] = False
+            if user['settings']['idea_stream_public'] == "true":
+                user['settings']['idea_stream_public'] = "false" 
                 u = User.find(User.pk == user['pk']).first()
-                settings = Settings(**u.settings)
-                settings.idea_stream_public = False
-                u.settings = settings
+                u.settings.idea_stream_public = "false"
                 u.save()
                 flash('Ideas are now private')
                 return redirect(url_for('routes.settings'))
             else:
-                user['settings']['idea_stream_public'] = True
+                user['settings']['idea_stream_public'] = "true"
                 u = User.find(User.pk == user['pk']).first()
-                settings = Settings(**u.settings)
-                settings.idea_stream_public = True
-                u.settings = settings
+                u.settings.idea_stream_public = "true"
                 u.save()
                 flash('Ideas are now public')
                 return redirect(url_for('routes.settings'))
@@ -383,7 +379,7 @@ def idea_stream(username):
         user = User.find(User.username == username).first()
     except NotFoundError:
         return 'no user found'
-    if not user.settings['idea_stream_public']:
+    if user.settings.idea_stream_public == "false":
         return "user's idea stream is off"
     ideas = user_all_ideas(user.pk)
     return render_template('idea_stream.html',username=username,ideas=ideas)
