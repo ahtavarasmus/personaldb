@@ -217,6 +217,19 @@ def delete_reminder(pk):
     flash("reminder delete")
     return redirect(url_for('routes.home'))
 
+@routes.route("/delete-item/<item_type>/<item_pk>")
+def delete_item(item_type, item_pk):
+    user = session.get('user',default={})
+    if not user:
+        flash("Login required")
+        return redirect(url_for('routes.home'))
+    if item_type == "idea":
+        Idea.delete(item_pk)
+        flash("Idea deleted")
+    elif item_type == "reminder":
+        Reminder.delete(item_pk)
+        flash("Reminder deleted")
+    return redirect(url_for('routes.home'))
 
 
 

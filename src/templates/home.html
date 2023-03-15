@@ -15,7 +15,7 @@
     {% for reminder in reminders %}    
     <li>
         {{reminder['time']}} - {{reminder['message']}}
-        <a href="/delete-reminder-{{reminder['pk']}}">del</a>
+        <a href="/delete-item/reminder/{{reminder['pk']}}">del</a>
         <a href="/edit-reminder-{{reminder['pk']}}">edit</a>
     </li>
     {% endfor %}
@@ -57,7 +57,7 @@
     {% for idea in ideas %}
     <li>
         {{idea['message']}} 
-        <a href="/delete-idea-{{idea['pk']}}">del</a>
+        <a href="/delete-item/idea/{{idea['pk']}}">del</a>
         <a href="/edit-idea-{{idea['pk']}}">edit</a>
     </li>
     {% endfor %}
