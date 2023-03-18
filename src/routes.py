@@ -169,6 +169,8 @@ def edit_reminder(pk):
                 print(e)
                 flash("Date format not right")
                 return render_template('edit_reminder.html',
+                                       user=user,
+                                       message=rem_message_str,
                                        reminder_pk=pk)
             epoch_time = int(round(time_obj.timestamp()))
             reminder.time = epoch_time
@@ -179,16 +181,37 @@ def edit_reminder(pk):
             if msg == "":
                 Reminder.delete(pk)
                 flash("Reminder Deleted")
+                return redirect(url_for('routes.home'))
             else: 
                 reminder.message = msg
                 reminder.save()
                 flash("Message changed")
+        elif 'reocc' in request.form:
+            if reminder.reoccurring == "true":
+                reminder.reoccurring = "false"
+                reminder.save()
+                flash("Reoccurring is now OFF")
+            else:
+                reminder.reoccurring = "true"
+                reminder.save()
+                flash("Reoccurring is now ON")
+        elif 'method' in request.form:
+            if reminder.remind_method == "text":
+                reminder.remind_method = "call"
+                reminder.save()
+                flash("Reminder is set to call you")
+            else:
+                reminder.remind_method = "text"
+                reminder.save()
+                flash("Reminder is set to text you")
 
-        return redirect(url_for('routes.home'))
+
     return render_template('edit_reminder.html',
                            user=user,
                            message=rem_message_str,
-                           reminder_pk=pk
+                           reminder_pk=pk,
+                           reocc=reminder.reoccurring,
+                           method=reminder.remind_method
                            )
 
 # -------------------------------------------------------------------------

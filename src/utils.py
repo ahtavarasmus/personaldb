@@ -114,7 +114,7 @@ def format_notebags(notebags):
 
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
-def save_reminder(user_pk,msg,time_str):
+def save_reminder(user_pk,msg,time_str,reoccurring="false",remind_method="text"):
     """
     saves a reminder to redis
     return: True if success, else False
@@ -126,11 +126,11 @@ def save_reminder(user_pk,msg,time_str):
     epoch_time = int(round(time_obj.timestamp()))
     new_reminder = Reminder(user=user_pk,
                             message=msg,
-                            time=epoch_time
+                            time=epoch_time,
+                            reoccurring=reoccurring,
+                            remind_method=remind_method
                             )
     new_reminder.save()
-    pk1 = str(new_reminder.pk)
-    rem = Reminder.find(Reminder.pk == pk1).first()
     return True
 
 def save_idea(user,msg):
@@ -196,6 +196,10 @@ def save_note(user_pk, bag_pk, message):
 
 # --------------- DELETING -----------------------------------------------
 #-------------------------------------------------------------------------
+
+def delete_reminder(rem_pk):
+    """ Deletes the reminder with the given id """
+    Reminder.delete(rem_pk)
  
 def delete_all_reminders():
     """

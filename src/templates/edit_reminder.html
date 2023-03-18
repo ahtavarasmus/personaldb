@@ -12,5 +12,13 @@
         <input name="time" type="text" placeholder="no change if left empty">
         <input name="time" type="submit" value="Confirm">
     </form>
+    <form action="/edit-reminder-{{reminder_pk}}" method="POST">
+        <label for="reocc">Reoccurring</label>
+        <input name="reocc" type="submit" value="{{reocc}}">
+    </form>
+    <form action="/edit-reminder-{{reminder_pk}}" method="POST">
+        <label for="method">Remind Method: {{method}}</label>
+        <input name="method" type="submit" value="Change">
+    </form>
     </section>
 {% endblock %}

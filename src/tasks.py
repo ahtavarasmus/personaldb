@@ -13,8 +13,26 @@ def every_minute():
             user = user.dict()
         except:
             continue
-        call(str(user['phone']),rem['message'])
-        text(str(user['phone']),str("Reminder. "+rem['message']))
+        if rem['remind_method'] == "call":
+            call(str(user['phone']),rem['message'])
+        else: # text
+            text(str(user['phone']),f"Remember: {rem['message']}")
+        if rem['reoccurring'] == "true":
+            new_time = int(round((rem['time']+timedelta(days=1)).timestamp()))
+            new_reminder = Reminder(user=rem['user'],
+                            message=rem['message'],
+                            time=new_time,
+                            reoccurring=rem['reoccurring'],
+                            remind_method=rem['remind_method']
+                            )
+            new_reminder.save()
+
+        delete_reminder(rem['pk'])
+
+
+
+
+
 
 
     # ------------------------TIMER -------------------------------

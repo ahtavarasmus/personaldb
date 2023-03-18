@@ -27,6 +27,8 @@ class Reminder(JsonModel):
     user: str = Field(index=True)
     message: str = Field(index=True)
     time: int = Field(index=True)
+    reoccurring: str = Field(index=True,default="false")
+    remind_method: str = Field(index=True,default="text")
 
 class Idea(JsonModel):
     user: str = Field(index=True)
