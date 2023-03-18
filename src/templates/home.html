@@ -14,7 +14,10 @@
     <ul>
     {% for reminder in reminders %}    
     <li>
-        {{reminder['time']}} - {{reminder['message']}}
+         
+        {{"Call" if reminder['remind_method'] == "call" else "Text"}} 
+        - {{"Reoccurring" if reminder['reoccurring'] == "true" else "One time"}}
+        - {{reminder['time']}} - {{reminder['message']}} 
         <a href="/delete-item/reminder/{{reminder['pk']}}">del</a>
         <a href="/edit-reminder-{{reminder['pk']}}">edit</a>
     </li>
