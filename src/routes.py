@@ -102,8 +102,8 @@ def settings():
 # -------------------------- EDITING/SAVING --------------------------
 # --------------------------------------------------------------------
 
-@routes.route("/note-to-<bag_pk>",methods=['POST'])
-def save_note_to_bag(bag_pk):
+@routes.route("/note-to-<bag_name>",methods=['POST'])
+def save_note_to_bag(bag_name):
     user = session.get('user',default={})
     if not user:
         flash('login required')
@@ -111,13 +111,14 @@ def save_note_to_bag(bag_pk):
 
     message = request.form.get('note')
     if message:
-        if save_note(user['pk'], bag_pk, message):
+        if save_note(user['pk'], bag_name, message):
             flash("note saved!")
         else:
             flash("error saving the note")
     else:
         flash("note can't be empty")
     return redirect(url_for('routes.home'))
+ 
 
 @routes.route("/edit-idea-<pk>", methods=['POST','GET'])
 def edit_idea(pk):
@@ -218,28 +219,6 @@ def edit_reminder(pk):
 #                                 DELETING 
 # -------------------------------------------------------------------------
 
-@routes.route("/delete-idea-<pk>")
-def delete_idea(pk):
-
-    user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
-        return redirect(url_for('routes.home'))
-    Idea.delete(pk)
-    flash("idea deleted")
-    return redirect(url_for('routes.home'))
-    
-@routes.route("/delete-reminder-<pk>")
-def delete_reminder(pk):
-
-    user = session.get('user',default=dict())
-    if not user:
-        flash('login required')
-        return redirect(url_for('routes.home'))
-    Reminder.delete(pk)
-    flash("reminder delete")
-    return redirect(url_for('routes.home'))
-
 @routes.route("/delete-item/<item_type>/<item_pk>")
 def delete_item(item_type, item_pk):
     user = session.get('user',default={})
@@ -252,6 +231,17 @@ def delete_item(item_type, item_pk):
     elif item_type == "reminder":
         Reminder.delete(item_pk)
         flash("Reminder deleted")
+    elif item_type == "note":
+        if delete_note(user['pk'],item_pk):
+            flash("Note deleted")
+        else:
+            flash("couldn't delete note")
+    elif item_type == "notebag":
+        if delete_notebag(user['pk'],item_pk):
+            flash("Notebag deleted")
+        else:
+            flash("Couldn't delete notebag")
+
     return redirect(url_for('routes.home'))
 
 
@@ -371,9 +361,13 @@ def sms_webhook():
                     message = f"Timer for {minutes}min started"
                 else:
                     message = f'Error. Another timer already going. Use "t stop" to stop it'
-    elif body[:2] == 'n ':
+    elif body.startswith("n "):
         # interface for adding notes
-        pass
+        if len(body) > 3:
+            if save_note(user.pk,"main",body[2:]):
+                message = "Note saved."
+            else:
+                message = "Error. Couldn't save the note"
 
     else:
         message = 'Wrong keyword. Type "h" for help.'

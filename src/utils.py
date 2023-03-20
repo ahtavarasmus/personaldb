@@ -163,15 +163,17 @@ def save_notebag(user_pk, name):
         user = User.find(User.pk == user_pk).first()
     except NotFoundError:
         return False
-
-    user.master_notebag.notebags.append(NoteBag(name=name))    
-    print(user.master_notebag.notebags[0])
+    for notebag in user.notebags:
+        if notebag.name == name:
+            flash('name exists already')
+            return False
+    user.notebags.append(NoteBag(name=name))
     user.save()
     if "user" in session:
         session['user'] = user.dict()
     return True
 
-def save_note(user_pk, bag_pk, message):
+def save_note(user_pk, bag_name, message):
     try:
         user = User.find(User.pk == user_pk).first()
     except NotFoundError:
@@ -179,14 +181,15 @@ def save_note(user_pk, bag_pk, message):
     time = str(round(datetime.now().timestamp()))
 
     found = False
-    for bag in user.master_notebag.notebags:
-        if bag.pk == bag_pk:
+    for bag in user.notebags:
+        if bag.name == bag_name:
             bag.notes.append(Note(message=message,time=time))
             user.save()
             if "user" in session:
                 session['user'] = user.dict()
 
             found = True
+            break
     if found:
         return True
     return False
@@ -226,7 +229,35 @@ def stop_timer(user_pk):
     except NotFoundError:
         pass
 
+def delete_note(user_pk,note_pk):
+    try:
+        user = User.find(User.pk == user_pk).first()
+    except:
+        return False
 
+    for notebag in user.notebags:
+        for note in notebag.notes:
+            print(note.pk)
+            if note.pk == note_pk:
+                notebag.notes.remove(note)
+                user.save()
+                return True
+
+    return False 
+
+def delete_notebag(user_pk,bag_name):
+    try:
+        user = User.find(User.pk == user_pk).first()
+    except:
+        return False
+
+    for notebag in user.notebags:
+        if notebag.name == bag_name:
+            user.notebags.remove(notebag)
+            user.save()
+            return True
+
+    return False
 
 
 # --------------- QUERYING -----------------------------------------------
@@ -295,7 +326,7 @@ def all_timers():
     return format_timers(timers)
     
 def user_all_notebags(user_pk):
-    notebags = User.find(User.pk == user_pk).first().master_notebag.notebags
+    notebags = User.find(User.pk == user_pk).first().notebags
     return format_notebags(notebags)
 
 # ------------------------ SENDING ---------------------------------

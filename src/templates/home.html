@@ -36,13 +36,18 @@
     <ul>
         {% for notebag in notebags %}
         <li>
-            <form action="/note-to-{{notebag['pk']}}" method="POST">
+            <form action="/note-to-{{notebag['name']}}" method="POST">
             <textarea type="text" name="note" placeholder="note to bag: {{notebag['name']}}"></textarea>
             <input type="submit" name="note" value="Add">
+            {% if notebag['name'] != "main" %}
+            <a href="/delete-item/notebag/{{notebag['name']}}">del</a>
+            {% endif %}
             </form>
             {% for note in notebag['notes'] %}
             <ul>
-                <li>{{note['time']}} - {{note['message']}}</li>
+                <li>{{note['time']}} - {{note['message']}} 
+                    <a href="/delete-item/note/{{note['pk']}}">del</a>
+                </li>
             </ul>
             {% endfor %}
         </li>

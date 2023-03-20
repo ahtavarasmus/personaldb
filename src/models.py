@@ -20,6 +20,7 @@ class User(JsonModel):
     username: str = Field(index=True)
     password: str = Field(index=True)
     phone: str = Field(index=True)
+    notebags: List[NoteBag] = Field(index=True,default=[NoteBag(name='main')])
     master_notebag: MasterNoteBag = Field(index=True,default=MasterNoteBag())
     settings: Settings = Field(index=True,default=Settings()) 
 
