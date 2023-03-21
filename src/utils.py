@@ -66,15 +66,18 @@ def handle_reminder_form(request_form, user_pk, item_pk):
 
 
 def handle_request_form(request_form, user_pk,item_pk):
-    if "reminder" or "reminder-reocc" or "reminder-method" in request_form:
-        handle_reminder_form(request_form,user_pk,item_pk)
-    elif "idea" in request_form:
+    if "idea" in request_form:
         msg = request_form['message']
         save_idea(user_pk, msg)
     elif "bag-name" in request_form:
         name = request_form.get("bag-name")
         print(name)
         save_notebag(user_pk, name)
+    elif "reminder" or "reminder-reocc" or "reminder-method" in request_form:
+        flash("here")
+        flash(request_form.get('reminder-method'))
+        handle_reminder_form(request_form,user_pk,item_pk)
+
 
 
 def format_ideas(ideas):
