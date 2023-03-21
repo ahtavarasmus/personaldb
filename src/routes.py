@@ -14,8 +14,9 @@ tz = timezone(timedelta(hours=2))
 
 routes = Blueprint('routes',__name__,template_folder='templates')
 
+@routes.route("/<item_pk>", methods=['POST','GET'])
 @routes.route("/", methods=['POST','GET'])
-def home():
+def home(item_pk=None):
 
     user = session.get('user',default={})
     # Left this here for reference for future migrations
@@ -28,7 +29,7 @@ def home():
 
 
     if request.method == 'POST':
-        handle_request_form(request.form, user['pk'])
+        handle_request_form(request.form, user['pk'],item_pk)
         return redirect(url_for('routes.home'))
 
 
@@ -187,26 +188,7 @@ def edit_reminder(pk):
                 reminder.message = msg
                 reminder.save()
                 flash("Message changed")
-        elif 'reocc' in request.form:
-            if reminder.reoccurring == "true":
-                reminder.reoccurring = "false"
-                reminder.save()
-                flash("Reoccurring is now OFF")
-            else:
-                reminder.reoccurring = "true"
-                reminder.save()
-                flash("Reoccurring is now ON")
-        elif 'method' in request.form:
-            if reminder.remind_method == "text":
-                reminder.remind_method = "call"
-                reminder.save()
-                flash("Reminder is set to call you")
-            else:
-                reminder.remind_method = "text"
-                reminder.save()
-                flash("Reminder is set to text you")
-
-
+        
     return render_template('edit_reminder.html',
                            user=user,
                            message=rem_message_str,

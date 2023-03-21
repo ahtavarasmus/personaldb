@@ -39,17 +39,35 @@ def get_user_data(user_pk):
 
     return reminders, ideas, notebags
 
-def handle_request_form(request_form, user_pk):
-    if "test-data" in request_form:
-        load_test_data()
-    elif "all" in request_form:
-        session['reminders'] = user_all_reminders(user_pk)
-    elif "this-minute" in request_form:
-        session['reminders'] = all_reminders_this_minute()
-    elif "reminder" in request_form:
+def handle_reminder_form(request_form, user_pk, item_pk):
+    if "reminder-new" in request_form:
         msg = request_form['message']
         time_str = request_form['time']
         save_reminder(user_pk, msg, time_str)
+        return
+    try:
+        reminder = Reminder.find(Reminder.pk == item_pk).first()
+    except:
+        flash("couldn't find the reminder")
+        return
+    if "reminder-reocc" in request_form:
+        if reminder.reoccurring == "true":
+            reminder.reoccurring = "false"
+        else:
+            reminder.reoccurring = "true"
+        reminder.save()
+    elif "reminder-method" in request_form:
+        if reminder.remind_method == "call":
+            reminder.remind_method = "text"
+        else:
+            reminder.remind_method = "call"
+        reminder.save()
+       
+
+
+def handle_request_form(request_form, user_pk,item_pk):
+    if "reminder" or "reminder-reocc" or "reminder-method" in request_form:
+        handle_reminder_form(request_form,user_pk,item_pk)
     elif "idea" in request_form:
         msg = request_form['message']
         save_idea(user_pk, msg)

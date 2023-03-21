@@ -9,23 +9,25 @@
         <textarea type="text" name="message"></textarea>
         <label for="time">Time</label>
         <input type="text" name="time" id="time">
-        <button type="submit" name="reminder">Add</button>
+        <button type="submit" name="reminder-new">Add</button>
     </form>
     <ul>
     {% for reminder in reminders %}    
     <li>
          
-        {{"Call" if reminder['remind_method'] == "call" else "Text"}} 
-        - {{"Reoccurring" if reminder['reoccurring'] == "true" else "One time"}}
-        - {{reminder['time']}} - {{reminder['message']}} 
-        <a href="/delete-item/reminder/{{reminder['pk']}}">del</a>
-        <a href="/edit-reminder-{{reminder['pk']}}">edit</a>
+        <form action="/{{reminder['pk']}}" method="POST">
+            <input name="reminder-method" type="submit" 
+            value={{"Call" if reminder['remind_method'] == "call" else "Text"}}>
+            <input name="reminder-reocc" type="submit" 
+            value="{{"Reoccurring" if reminder['reoccurring'] == "true" else "One Time"}}">
+            - {{reminder['time']}} - {{reminder['message']}}
+            <a href="/delete-item/reminder/{{reminder['pk']}}">del</a>
+            <a href="/edit-reminder-{{reminder['pk']}}">edit</a>
+        </form>
     </li>
     {% endfor %}
     </ul>
 </section>
-<section>
-    </section>
 <section>
     <form action="/" method="POST">
         <h3>Create a notebag</h3>        
@@ -54,7 +56,6 @@
         {% endfor %}
     </ul>
 </section>
-
 <section>
     <form action="/" method="POST">
         <h3>Save an Idea:</h3>
