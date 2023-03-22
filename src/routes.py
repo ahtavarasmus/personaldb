@@ -258,7 +258,7 @@ def sms_webhook():
         return "user not found",404
     message = ""
     
-    if body[0] == "h":
+    if body.startswith("h"):
         if body[2] == "r":
             message = '''"r [body]" -> add reminder,
                         [body] must include a message and date 
@@ -298,14 +298,14 @@ def sms_webhook():
                       
                     "
                     '''
-    elif body[:5] == "all r":
+    elif body.startswith("all r"):
         all_reminders = user_all_reminders(str(user.pk))
         if not all_reminders:
             message = "No reminders."
         else:
             for r in all_reminders:
                 message += str(r['time']) + " " + r['message'] + "\n"
-    elif body[:10] == "all i with":
+    elif body.startswith("all i with"):
         key = body[11:]
         user_pk = str(user.pk)
         ideas_obj = Idea.find((Idea.user == user_pk) and 
@@ -317,7 +317,7 @@ def sms_webhook():
             for i in ideas:
                 message += "- "+i['message']+"\n"
 
-    elif body[:2] == 'r ':
+    elif body.startswith("r "):
         t = re.search(r"\d+\/\d+\/\d+",body[2:])
         t2 = re.search(r"\d+\:\d+",body[2:])
         if t == None or t2 == None:
@@ -337,13 +337,13 @@ def sms_webhook():
                 message = "Reminder saved."
             else:
                 message = "Error. Could not save the reminder"
-    elif body[:2] == 'i ':
+    elif body.startswith("i "):
         if save_idea(str(user.pk),body[2:]):
             message = "Idea saved"
         else:
             message = "Error. Could not save the idea"
 
-    elif body[:2] == 't ':
+    elif body.startswith("t "):
         found = re.search("\d+",body[2:])
         stop = re.search("stop",body[2:])
         if stop != None:

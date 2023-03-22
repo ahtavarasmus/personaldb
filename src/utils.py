@@ -366,6 +366,7 @@ def user_all_notebags(user_pk):
     notebags = User.find(User.pk == user_pk).first().notebags
     return format_notebags(notebags)
 
+
 # ------------------------ SENDING ---------------------------------
 #-------------------------------------------------------------------
 
@@ -422,9 +423,6 @@ def load_test_data():
     save_reminder(session['user']['pk'],"reminder tomorrow",
                   str(dt.day)+"/"+str(dt.month)+"/"+str(dt.year)[2:]
                   +" "+str(dt.hour)+":"+str(dt.minute))
-
-
-
 
 
 
