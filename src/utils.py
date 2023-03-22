@@ -133,6 +133,23 @@ def format_notebags(notebags):
 
     return response
 
+def move_note(user_pk,note_pk,bag_name):
+    user = User.find(User.pk == user_pk).first()
+    print("H",note_pk)
+    for bag in user.notebags:
+        print("moI",bag.name)
+        for note in bag.notes:
+            print(note.pk)
+            if note.pk == note_pk:
+                save_note(user.pk,bag_name,note.message,note.time)
+                delete_note(user.pk,note_pk)
+                return True
+    return False
+
+    
+
+
+
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
 def save_reminder(user_pk,msg,time_str,reoccurring="false",remind_method="text"):
@@ -194,12 +211,11 @@ def save_notebag(user_pk, name):
         session['user'] = user.dict()
     return True
 
-def save_note(user_pk, bag_name, message):
+def save_note(user_pk, bag_name, message,time=str(round(datetime.now().timestamp()))):
     try:
         user = User.find(User.pk == user_pk).first()
     except NotFoundError:
         return False
-    time = str(round(datetime.now().timestamp()))
 
     found = False
     for bag in user.notebags:

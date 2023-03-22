@@ -103,6 +103,21 @@ def settings():
 # -------------------------- EDITING/SAVING --------------------------
 # --------------------------------------------------------------------
 
+@routes.route("/move-<note_pk>-to-<bag_name>",methods=['POST','GET'])
+def move_to(note_pk,bag_name):
+    flash("here")
+    user = session.get('user',default={})
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+      
+    if move_note(user['pk'],note_pk,bag_name):
+        flash("note moved")
+    else:
+        flash("error moving the note")
+    return redirect(url_for('routes.home'))
+
+
 @routes.route("/note-to-<bag_name>",methods=['POST'])
 def save_note_to_bag(bag_name):
     user = session.get('user',default={})
