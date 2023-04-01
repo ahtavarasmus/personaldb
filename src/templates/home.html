@@ -90,6 +90,22 @@
     {% endfor %}
     </ul>
 </section>
+<section>
+    <form action="/" method="POST">
+        <h3>Save a Quote:</h3>
+        <textarea type="text" name="quote" placeholder="type here"></textarea>
+        <input type="submit" name="quote" value="Add">
+    </form>
+    <ul>
+    {% for quote in quotes %}
+        <li>
+            {{quote['message']}} 
+            <a href="/delete-item/quote/{{quote['pk']}}">del</a>
+            <a href="/edit-quote-{{quote['pk']}}">edit</a>
+        </li>
+    {% endfor %}
+    </ul>
+</section>
 
 {% else %}
 not logged in!

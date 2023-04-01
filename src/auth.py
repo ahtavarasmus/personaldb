@@ -13,7 +13,7 @@ auth = Blueprint('auth',__name__,template_folder='templates')
 
 @auth.route("/login", methods=['POST','GET'])
 def login():
-    user = session.get('user',default={})
+    user = session.get('user',default="")
     if user:
         return redirect(url_for('routes.home'))
 
@@ -37,7 +37,8 @@ def login():
 
 
         if check_password_hash(str(user_dict['password']),str(password)):
-            session['user'] = user_dict
+            session['user'] = user_dict['pk'] 
+            print("hereeeeeeeeeeeee")
             return redirect(url_for('routes.home'))
         flash("Wrong password!")
 
@@ -49,7 +50,7 @@ def login():
 @auth.route("/signup",methods=['POST','GET'])
 def signup():
 
-    user = session.get('user',default={})
+    user = session.get('user',default="")
 
     if user:
         return redirect(url_for('routes.home'))
@@ -85,7 +86,7 @@ def signup():
         #user.save()
         user_dict = user.dict()
         print(user_dict)
-        session['user'] = user_dict
+        session['user'] = user_dict['pk']
         return redirect(url_for('routes.home'))
 
     return render_template('auth/signup.html',user=user)
@@ -101,6 +102,8 @@ def logout():
 def token():
 
     user = session.get('user',default=dict())
+    if user:
+        user = User.find(User.pk == user).first().dict()
 
     todo = session.get("todo", default="")
  

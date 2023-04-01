@@ -9,7 +9,7 @@ import json
 import random
 
 # Internal
-from .models import Reminder,User,Idea,Timer,Note,NoteBag
+from .models import Reminder,User,Idea,Timer,Note,NoteBag,Quote
 from datetime import datetime, time,timedelta,timezone
 
 # specific config
@@ -36,8 +36,9 @@ def get_user_data(user_pk):
     reminders = user_all_reminders(user_pk)
     ideas = user_all_ideas(user_pk)
     notebags = user_all_notebags(user_pk)
+    quotes = user_all_quotes(user_pk)
 
-    return reminders, ideas, notebags
+    return reminders, ideas, notebags, quotes
 
 def handle_reminder_form(request_form, user_pk, item_pk):
     if "reminder-new" in request_form:
@@ -73,11 +74,26 @@ def handle_request_form(request_form, user_pk,item_pk):
         name = request_form.get("bag-name")
         print(name)
         save_notebag(user_pk, name)
+    elif "quote" in request_form:
+        msg = request_form['quote']
+        print("QUOTE: ",msg)
+        save_quote(user_pk, msg)
+
+
     elif "reminder" or "reminder-reocc" or "reminder-method" in request_form:
         flash("here")
         flash(request_form.get('reminder-method'))
         handle_reminder_form(request_form,user_pk,item_pk)
 
+    print("FORM: ",request_form)
+
+def format_quotes(quotes):
+    print("IN FORMAT QUOTES WITH QUOTES:",quotes)
+    response = []
+    for quote in quotes:
+        q_dict = quote.dict()
+        response.append(q_dict)
+    return response
 
 
 def format_ideas(ideas):
@@ -152,6 +168,20 @@ def move_note(user_pk,note_pk,bag_name):
 
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
+
+
+def save_quote(user_pk,msg):
+    try:
+        user = User.find(User.pk == user_pk).first()
+    except:
+        flash("couldn't find the user")
+        return False
+    user.quotes.append(Quote(quote=msg))
+    user.save()
+    flash("quote saved")
+    return True
+    
+
 def save_reminder(user_pk,msg,time_str,reoccurring="false",remind_method="text"):
     """
     saves a reminder to redis
@@ -207,8 +237,6 @@ def save_notebag(user_pk, name):
             return False
     user.notebags.append(NoteBag(name=name))
     user.save()
-    if "user" in session:
-        session['user'] = user.dict()
     return True
 
 def save_note(user_pk, bag_name, message,time=str(round(datetime.now().timestamp()))):
@@ -222,9 +250,6 @@ def save_note(user_pk, bag_name, message,time=str(round(datetime.now().timestamp
         if bag.name == bag_name:
             bag.notes.append(Note(message=message,time=time))
             user.save()
-            if "user" in session:
-                session['user'] = user.dict()
-
             found = True
             break
     if found:
@@ -365,6 +390,11 @@ def all_timers():
 def user_all_notebags(user_pk):
     notebags = User.find(User.pk == user_pk).first().notebags
     return format_notebags(notebags)
+
+def user_all_quotes(user_pk):
+    quotes = User.find(User.pk == user_pk).first().quotes
+    return format_quotes(quotes)
+
 
 
 # ------------------------ SENDING ---------------------------------

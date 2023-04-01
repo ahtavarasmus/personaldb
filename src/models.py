@@ -5,7 +5,6 @@ from datetime import datetime
 class Note(JsonModel):
     message: str = Field(index=True)
     time: str = Field(index=True,default=str(round(datetime.now().timestamp())))
-
 class NoteBag(JsonModel):
     name: str = Field(index=True)
     notes: List[Note] = Field(index=True,default=[])
@@ -16,12 +15,16 @@ class MasterNoteBag(JsonModel):
 class Settings(JsonModel):
     idea_stream_public: str = Field(index=True,default="false")
 
+class Quote(JsonModel):
+    quote: str = Field(index=True)
+
 class User(JsonModel):
     username: str = Field(index=True)
     password: str = Field(index=True)
     phone: str = Field(index=True)
     notebags: List[NoteBag] = Field(index=True,default=[NoteBag(name='main')])
     master_notebag: MasterNoteBag = Field(index=True,default=MasterNoteBag())
+    quotes: List[Quote] = Field(index=True,default=[Quote(quote="default")])
     settings: Settings = Field(index=True,default=Settings()) 
 
 class Reminder(JsonModel):

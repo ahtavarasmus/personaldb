@@ -18,7 +18,13 @@ routes = Blueprint('routes',__name__,template_folder='templates')
 @routes.route("/", methods=['POST','GET'])
 def home(item_pk=None):
 
-    user = session.get('user',default={})
+    user = session.get('user',default="")
+    if user:
+        user_obj = User.find(User.pk == user).first()
+        user_dict = user_obj.dict()
+        if not hasattr(user_dict,'quotes'):
+            user_obj.quotes = []
+            user_obj.save()
     # Left this here for reference for future migrations
     #ideas = Idea.find().all()
     #for i in ideas:
@@ -29,38 +35,45 @@ def home(item_pk=None):
 
 
     if request.method == 'POST':
-        handle_request_form(request.form, user['pk'],item_pk)
+        handle_request_form(request.form, user,item_pk)
         return redirect(url_for('routes.home'))
 
 
 
     if user:
-        reminders, ideas, notebags = get_user_data(user['pk'])
+        reminders, ideas, notebags, quotes = get_user_data(user)
+        print("LEN QUOTES: ",len(quotes))
+        user_dict = User.find(User.pk == user).first().dict()
+
     else:
         reminders = []
         ideas = []
         notebags = []
+        quotes = []
+        user_dict = {}
 
 
         
 
     return render_template('home.html',
                            session=session,
-                           user=user,
+                           user=user_dict,
                            reminders=reminders,
                            ideas=ideas,
-                           notebags=notebags
+                           notebags=notebags,
+                           quotes=quotes
                            )
 
     
 @routes.route("/settings",methods=['POST','GET'])
 def settings():
-    user = session.get('user',default={})
+    user = session.get('user',default="")
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
 
     
+    user = User.find(User.pk == user).first().dict()
 
     print("User settings",user['settings'])
     if request.method == 'POST':
@@ -106,10 +119,12 @@ def settings():
 @routes.route("/move-<note_pk>-to-<bag_name>",methods=['POST','GET'])
 def move_to(note_pk,bag_name):
     flash("here")
-    user = session.get('user',default={})
+    user = session.get('user',default="")
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
+
+    user = User.find(User.pk == user).first().dict()
       
     if move_note(user['pk'],note_pk,bag_name):
         flash("note moved")
@@ -120,10 +135,12 @@ def move_to(note_pk,bag_name):
 
 @routes.route("/note-to-<bag_name>",methods=['POST'])
 def save_note_to_bag(bag_name):
-    user = session.get('user',default={})
+    user = session.get('user',default="")
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
+
+    user = User.find(User.pk == user).first().dict()
 
     message = request.form.get('note')
     if message:
@@ -138,10 +155,12 @@ def save_note_to_bag(bag_name):
 
 @routes.route("/edit-idea-<pk>", methods=['POST','GET'])
 def edit_idea(pk):
-    user = session.get('user',default=dict())
+    user = session.get('user',default="")
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
+
+    user = User.find(User.pk == user).first().dict()
 
     idea = Idea.find(Idea.pk == pk).first()
     cur_idea = idea.dict()
@@ -163,10 +182,12 @@ def edit_idea(pk):
 
 @routes.route("/edit-reminder-<pk>", methods=['POST','GET'])
 def edit_reminder(pk):
-    user = session.get('user',default=dict())
+    user = session.get('user',default="")
     if not user:
         flash("login required")
         return redirect(url_for('routes.home'))
+
+    user = User.find(User.pk == user).first().dict()
 
     try: 
         reminder = Reminder.find(Reminder.pk == pk).first()
@@ -218,10 +239,13 @@ def edit_reminder(pk):
 
 @routes.route("/delete-item/<item_type>/<item_pk>")
 def delete_item(item_type, item_pk):
-    user = session.get('user',default={})
+    user = session.get('user',default="")
     if not user:
         flash("Login required")
         return redirect(url_for('routes.home'))
+
+    user = User.find(User.pk == user).first().dict()
+
     if item_type == "idea":
         Idea.delete(item_pk)
         flash("Idea deleted")
