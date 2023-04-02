@@ -99,9 +99,25 @@
     <ul>
     {% for quote in quotes %}
         <li>
-            {{quote['message']}} 
+            {{quote['quote']}} 
             <a href="/delete-item/quote/{{quote['pk']}}">del</a>
             <a href="/edit-quote-{{quote['pk']}}">edit</a>
+        </li>
+    {% endfor %}
+    </ul>
+</section>
+<section>
+    <form action="/" method="POST">
+        <h3>Save a Link:</h3>
+        <textarea type="text" name="link" placeholder="type here"></textarea>
+        <input type="submit" name="link" value="Add">
+    </form>
+    <ul>
+    {% for link in links %}
+        <li>
+            <a target="_blank" href="{{link}}">{{link}}</a> 
+            <a href="/delete-item/link/{{link['pk']}}">del</a>
+            <a href="/edit-link-{{link['pk']}}">edit</a>
         </li>
     {% endfor %}
     </ul>

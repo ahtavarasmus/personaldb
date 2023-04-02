@@ -19,12 +19,6 @@ routes = Blueprint('routes',__name__,template_folder='templates')
 def home(item_pk=None):
 
     user = session.get('user',default="")
-    if user:
-        user_obj = User.find(User.pk == user).first()
-        user_dict = user_obj.dict()
-        if not hasattr(user_dict,'quotes'):
-            user_obj.quotes = []
-            user_obj.save()
     # Left this here for reference for future migrations
     #ideas = Idea.find().all()
     #for i in ideas:
@@ -41,7 +35,7 @@ def home(item_pk=None):
 
 
     if user:
-        reminders, ideas, notebags, quotes = get_user_data(user)
+        reminders, ideas, notebags, quotes,links = get_user_data(user)
         print("LEN QUOTES: ",len(quotes))
         user_dict = User.find(User.pk == user).first().dict()
 
@@ -51,6 +45,7 @@ def home(item_pk=None):
         notebags = []
         quotes = []
         user_dict = {}
+        links = []
 
 
         
@@ -61,7 +56,8 @@ def home(item_pk=None):
                            reminders=reminders,
                            ideas=ideas,
                            notebags=notebags,
-                           quotes=quotes
+                           quotes=quotes,
+                           links=links
                            )
 
     

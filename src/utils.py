@@ -33,12 +33,14 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 #-------------------------------------------------------------------------
 
 def get_user_data(user_pk):
+    print("User quotessss:",User.find(User.pk == user_pk).first().quotes)
     reminders = user_all_reminders(user_pk)
     ideas = user_all_ideas(user_pk)
     notebags = user_all_notebags(user_pk)
     quotes = user_all_quotes(user_pk)
+    links = user_all_links(user_pk)
 
-    return reminders, ideas, notebags, quotes
+    return reminders, ideas, notebags, quotes,links
 
 def handle_reminder_form(request_form, user_pk, item_pk):
     if "reminder-new" in request_form:
@@ -78,6 +80,10 @@ def handle_request_form(request_form, user_pk,item_pk):
         msg = request_form['quote']
         print("QUOTE: ",msg)
         save_quote(user_pk, msg)
+        print("User quotes:",User.find(User.pk == user_pk).first().quotes)
+    elif "link" in request_form:
+        link = request_form['link']
+        save_link(user_pk, link)
 
 
     elif "reminder" or "reminder-reocc" or "reminder-method" in request_form:
@@ -162,13 +168,21 @@ def move_note(user_pk,note_pk,bag_name):
                 return True
     return False
 
-    
-
-
-
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
 
+
+def save_link(user_pk,link):
+    try:
+        user = User.find(User.pk == user_pk).first()
+    except NotFoundError:
+        flash("couldn't find the user")
+        return False
+    print(user.links)
+    user.links.append(link)
+    user.save()
+    flash("link saved")
+    return True
 
 def save_quote(user_pk,msg):
     try:
@@ -176,8 +190,11 @@ def save_quote(user_pk,msg):
     except:
         flash("couldn't find the user")
         return False
-    user.quotes.append(Quote(quote=msg))
+    q = Quote(quote=msg)
+    print("Q:",q)
+    user.quotes.append(q)
     user.save()
+    print("USER QUOTES:",user.quotes)
     flash("quote saved")
     return True
     
@@ -395,6 +412,9 @@ def user_all_quotes(user_pk):
     quotes = User.find(User.pk == user_pk).first().quotes
     return format_quotes(quotes)
 
+def user_all_links(user_pk):
+    links = User.find(User.pk == user_pk).first().links
+    return links
 
 
 # ------------------------ SENDING ---------------------------------

@@ -25,6 +25,7 @@ class User(JsonModel):
     notebags: List[NoteBag] = Field(index=True,default=[NoteBag(name='main')])
     master_notebag: MasterNoteBag = Field(index=True,default=MasterNoteBag())
     quotes: List[Quote] = Field(index=True,default=[Quote(quote="default")])
+    links: List[str] = Field(index=True,default=["https://www.google.com"])
     settings: Settings = Field(index=True,default=Settings()) 
 
 class Reminder(JsonModel):
