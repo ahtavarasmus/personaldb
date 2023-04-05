@@ -32,13 +32,9 @@ def home(item_pk=None):
         handle_request_form(request.form, user,item_pk)
         return redirect(url_for('routes.home'))
 
-
-
     if user:
         reminders, ideas, notebags, quotes,links = get_user_data(user)
-        print("LEN QUOTES: ",len(quotes))
         user_dict = User.find(User.pk == user).first().dict()
-
     else:
         reminders = []
         ideas = []
@@ -46,9 +42,6 @@ def home(item_pk=None):
         quotes = []
         user_dict = {}
         links = []
-
-
-        
 
     return render_template('home.html',
                            session=session,
@@ -108,6 +101,80 @@ def settings():
                            user=user
                            )
 
+@routes.route("/ideas",methods=['POST','GET'])
+def ideas():
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
+    if request.method == 'POST':
+        msg = request.form['message']
+        save_idea(user, msg)
+        return redirect(url_for('routes.ideas'))
+
+    ideas = user_all_ideas(user)
+    return render_template('ideas.html',
+                           user=user,
+                           ideas=ideas
+                           )
+
+
+@routes.route("/reminders",methods=['POST','GET'])
+@routes.route("/reminders<item_pk>",methods=['POST','GET'])
+def reminders(item_pk=None):
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
+    if request.method == 'POST':
+        if "reminder-new" in request.form:  
+            msg = request.form['message']
+            time_str = request.form['time']
+            save_reminder(user, msg, time_str)
+            return
+        try:
+            reminder = Reminder.find(Reminder.pk == item_pk).first()
+        except:
+            flash("couldn't find the reminder")
+            return
+        if "reminder-reocc" in request.form:
+            if reminder.reoccurring == "true":
+                reminder.reoccurring = "false"
+            else:
+                reminder.reoccurring = "true"
+            reminder.save()
+        elif "reminder-method" in request.form:
+            if reminder.remind_method == "call":
+                reminder.remind_method = "text"
+            else:
+                reminder.remind_method = "call"
+            reminder.save()
+           
+        return redirect(url_for('routes.reminders'))
+    return render_template('reminders.html',
+                           user=user,
+                           reminders=user_all_reminders(user)
+                           )
+
+@routes.route("/quotes",methods=['POST','GET'])
+def quotes():
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+    if request.method == 'POST':
+        msg = request.form['quote']
+        save_quote(user, msg)
+        return redirect(url_for('routes.quotes'))
+    return render_template('quotes.html',
+                           user=user,
+                           quotes=user_all_quotes(user)
+                           )
+
+
+
 
 # -------------------------- EDITING/SAVING --------------------------
 # --------------------------------------------------------------------
@@ -156,8 +223,6 @@ def edit_idea(pk):
         flash('login required')
         return redirect(url_for('routes.home'))
 
-    user = User.find(User.pk == user).first().dict()
-
     idea = Idea.find(Idea.pk == pk).first()
     cur_idea = idea.dict()
     if request.method == 'POST':
@@ -169,11 +234,36 @@ def edit_idea(pk):
             idea.message = new_idea
             idea.save()
             flash("Idea edited")
-        return redirect(url_for('routes.home'))
+        return redirect(url_for('routes.ideas'))
 
     return render_template('edit_idea.html',
                            user=user,
                            cur_idea=cur_idea)
+
+@routes.route("/edit-quote-<pk>", methods=['POST','GET'])
+def edit_quote(pk):
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
+    quote = Quote.find(Quote.pk == pk).first()
+    cur_quote = quote.dict()
+    if request.method == 'POST':
+        new_quote = request.form.get('quote')
+        if new_quote == "":
+            Idea.delete(pk)
+            flash("Quote deleted")
+        else:
+            quote.quote = new_quote 
+            quote.save()
+            flash("Quote edited")
+        return redirect(url_for('routes.quotes'))
+
+    return render_template('edit_quote.html',
+                           user=user,
+                           cur_quote=cur_quote)
+
 
 
 @routes.route("/edit-reminder-<pk>", methods=['POST','GET'])
@@ -182,8 +272,6 @@ def edit_reminder(pk):
     if not user:
         flash("login required")
         return redirect(url_for('routes.home'))
-
-    user = User.find(User.pk == user).first().dict()
 
     try: 
         reminder = Reminder.find(Reminder.pk == pk).first()
@@ -240,21 +328,30 @@ def delete_item(item_type, item_pk):
         flash("Login required")
         return redirect(url_for('routes.home'))
 
-    user = User.find(User.pk == user).first().dict()
 
     if item_type == "idea":
         Idea.delete(item_pk)
         flash("Idea deleted")
+        return redirect(url_for('routes.ideas'))
     elif item_type == "reminder":
         Reminder.delete(item_pk)
         flash("Reminder deleted")
+        return redirect(url_for('routes.reminders'))
+    elif item_type == "quote":
+        user = User.find(User.pk == user).first()
+        for q in user.quotes:
+            if q.pk == item_pk:
+                user.quotes.remove(q)
+                user.save()
+                flash("Quote deleted")
+        return redirect(url_for('routes.quotes'))
     elif item_type == "note":
-        if delete_note(user['pk'],item_pk):
+        if delete_note(user,item_pk):
             flash("Note deleted")
         else:
             flash("couldn't delete note")
     elif item_type == "notebag":
-        if delete_notebag(user['pk'],item_pk):
+        if delete_notebag(user,item_pk):
             flash("Notebag deleted")
         else:
             flash("Couldn't delete notebag")

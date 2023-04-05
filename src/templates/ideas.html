@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Ideas{% endblock %}
+
+{% block content %}
+<section>
+    <form action="/ideas" method="POST">
+        <h3>Save an Idea:</h3>
+        <textarea type="text" name="message" placeholder="type here"></textarea>
+        <input type="submit" name="idea" value="Add">
+    </form>
+    <ul>
+    {% for idea in ideas %}
+    <li>
+        {{idea['message']}} 
+        <a href="/delete-item/idea/{{idea['pk']}}">del</a>
+        <a href="/edit-idea-{{idea['pk']}}">edit</a>
+    </li>
+    {% endfor %}
+    </ul>
+</section>
+
+    <h1>{{ title }}</h1>
+    <p>{{ content }}</p>
+{% endblock %}

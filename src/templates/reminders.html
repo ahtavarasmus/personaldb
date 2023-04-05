@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Reminders{% endblock %}
+
+{% block content %}
+
+<section>
+    <form action="/reminders" method="POST">
+        <h3>Create a reminder</h3>
+        <label for="message">Message</label>
+        <textarea type="text" name="message"></textarea>
+        <label for="time">Time</label>
+        <input type="text" name="time" id="time">
+        <button type="submit" name="reminder-new">Add</button>
+    </form>
+    <ul>
+    {% for reminder in reminders %}    
+    <li>
+         
+        <form action="/reminders{{reminder['pk']}}" method="POST">
+            <input name="reminder-method" type="submit" 
+            value={{"Call" if reminder['remind_method'] == "call" else "Text"}}>
+            <input name="reminder-reocc" type="submit" 
+            value="{{"Reoccurring" if reminder['reoccurring'] == "true" else "One Time"}}">
+            - {{reminder['time']}} 
+            - {{reminder['message']}}
+            <a href="/delete-item/reminder/{{reminder['pk']}}">del</a>
+            <a href="/edit-reminder-{{reminder['pk']}}">edit</a>
+        </form>
+    </li>
+    {% endfor %}
+    </ul>
+</section>
+{% endblock %}

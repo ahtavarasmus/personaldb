@@ -33,7 +33,6 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 #-------------------------------------------------------------------------
 
 def get_user_data(user_pk):
-    print("User quotessss:",User.find(User.pk == user_pk).first().quotes)
     reminders = user_all_reminders(user_pk)
     ideas = user_all_ideas(user_pk)
     notebags = user_all_notebags(user_pk)
@@ -69,18 +68,12 @@ def handle_reminder_form(request_form, user_pk, item_pk):
 
 
 def handle_request_form(request_form, user_pk,item_pk):
-    if "idea" in request_form:
-        msg = request_form['message']
-        save_idea(user_pk, msg)
-    elif "bag-name" in request_form:
+    if "bag-name" in request_form:
         name = request_form.get("bag-name")
-        print(name)
         save_notebag(user_pk, name)
     elif "quote" in request_form:
         msg = request_form['quote']
-        print("QUOTE: ",msg)
         save_quote(user_pk, msg)
-        print("User quotes:",User.find(User.pk == user_pk).first().quotes)
     elif "link" in request_form:
         link = request_form['link']
         save_link(user_pk, link)
@@ -91,10 +84,8 @@ def handle_request_form(request_form, user_pk,item_pk):
         flash(request_form.get('reminder-method'))
         handle_reminder_form(request_form,user_pk,item_pk)
 
-    print("FORM: ",request_form)
 
 def format_quotes(quotes):
-    print("IN FORMAT QUOTES WITH QUOTES:",quotes)
     response = []
     for quote in quotes:
         q_dict = quote.dict()
@@ -157,11 +148,8 @@ def format_notebags(notebags):
 
 def move_note(user_pk,note_pk,bag_name):
     user = User.find(User.pk == user_pk).first()
-    print("H",note_pk)
     for bag in user.notebags:
-        print("moI",bag.name)
         for note in bag.notes:
-            print(note.pk)
             if note.pk == note_pk:
                 save_note(user.pk,bag_name,note.message,note.time)
                 delete_note(user.pk,note_pk)
@@ -178,7 +166,6 @@ def save_link(user_pk,link):
     except NotFoundError:
         flash("couldn't find the user")
         return False
-    print(user.links)
     user.links.append(link)
     user.save()
     flash("link saved")
@@ -191,10 +178,8 @@ def save_quote(user_pk,msg):
         flash("couldn't find the user")
         return False
     q = Quote(quote=msg)
-    print("Q:",q)
     user.quotes.append(q)
     user.save()
-    print("USER QUOTES:",user.quotes)
     flash("quote saved")
     return True
     
@@ -216,21 +201,21 @@ def save_reminder(user_pk,msg,time_str,reoccurring="false",remind_method="text")
                             remind_method=remind_method
                             )
     new_reminder.save()
+    flash('reminder saved')
     return True
 
 def save_idea(user,msg):
-    print(msg)
     dt = datetime.now()
     epoch_time = int(round(dt.timestamp()))
     new_idea = Idea(user=user,message=msg,time=epoch_time)
     new_idea.save()
+    flash('idea saved')
     return True
 
 def start_timer(user,minutes):
     #dt = datetime.now().replace(tzinfo=tz)
     dt = datetime.now()
     dt += timedelta(minutes=minutes)
-    print("HOUR ",dt.hour)
     epoch_time = int(round(dt.timestamp()))
     try:
         timer = Timer.find(Timer.user == user).first()
@@ -254,6 +239,7 @@ def save_notebag(user_pk, name):
             return False
     user.notebags.append(NoteBag(name=name))
     user.save()
+    flash('notebag saved')
     return True
 
 def save_note(user_pk, bag_name, message,time=str(round(datetime.now().timestamp()))):
@@ -270,6 +256,7 @@ def save_note(user_pk, bag_name, message,time=str(round(datetime.now().timestamp
             found = True
             break
     if found:
+        flash('note saved')
         return True
     return False
 
@@ -282,6 +269,7 @@ def save_note(user_pk, bag_name, message,time=str(round(datetime.now().timestamp
 def delete_reminder(rem_pk):
     """ Deletes the reminder with the given id """
     Reminder.delete(rem_pk)
+    flash('reminder deleted')
  
 def delete_all_reminders():
     """
@@ -316,10 +304,10 @@ def delete_note(user_pk,note_pk):
 
     for notebag in user.notebags:
         for note in notebag.notes:
-            print(note.pk)
             if note.pk == note_pk:
                 notebag.notes.remove(note)
                 user.save()
+                flash('note deleted')
                 return True
 
     return False 
@@ -334,6 +322,7 @@ def delete_notebag(user_pk,bag_name):
         if notebag.name == bag_name:
             user.notebags.remove(notebag)
             user.save()
+            flash('notebag deleted')
             return True
 
     return False
@@ -398,7 +387,7 @@ def user_all_ideas(user_pk):
 
 def all_reminders():
     reminders = Reminder.find().all()
-    return format_ideas(reminders)
+    return format_reminders(reminders)
 
 def all_timers():
     timers = Timer.find().all()

@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Edit Quote{% endblock %}
+{% block content %}
+<form action="/edit-quote-{{cur_idea['pk']}}" method="POST">
+    <textarea type="text" name="quote">{{cur_quote['quote']}}</textarea>
+    <input type="submit" name="quote" value="Confirm">
+</form>
+{% endblock %}

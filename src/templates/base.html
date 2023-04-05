@@ -18,18 +18,27 @@
             <ul>
                 <li><a href="/">Home</a></li>
                 {% if session.get('user',default=None) != None %}
-            <li><a href="/logout">Logout</a></li>
-            <li><a href="/settings">Settings</a></li>
+                <li><a href="/logout">Logout</a></li>
+                <p>logged in as {{user['username']}}</p>
+                <select onchange="location = this.options[this.selectedIndex].value;">
+                    <option value="" selected disabled>Select a page</option>
+                    <option value="/reminders">Reminders</option>
+                    <option value="/ideas">Ideas</option>
+                    <option value="/notes">Notes</option>
+                    <option value="/quotes">Quotes</option>
+                    <option value="/links">Links</option>
+                    <option value="/settings">Settings</option>
 
-            <p>logged in as {{user['username']}}</p>
+                </select>
                 {% else %}
-            <li><a href="/login">Login</a></li>
-            <li><a href="/signup">SignUp</a></li>
-            <p>not logged in</p>
+                <li><a href="/login">Login</a></li>
+                <li><a href="/signup">SignUp</a></li>
+                <p>not logged in</p>
                 {% endif %}
             </ul>
         </header>
 
         {% block content %}{% endblock %}
+
     </body>
 </html>

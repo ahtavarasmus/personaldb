@@ -2,40 +2,6 @@
 {% block title %}Home{% endblock %}
 {% block content %}
 {% if session.get('user',default=None) != None %}
-
-<select onchange="location = this.options[this.selectedIndex].value;">
-  <option value="" selected disabled>Select a page</option>
-  <option value="/">Home</option>
-  <option value="/settings">Settings</option>
-</select>
-
-<section>
-    <form action="/" method="POST">
-        <h3>Create a reminder</h3>
-        <label for="message">Message</label>
-        <textarea type="text" name="message"></textarea>
-        <label for="time">Time</label>
-        <input type="text" name="time" id="time">
-        <button type="submit" name="reminder-new">Add</button>
-    </form>
-    <ul>
-    {% for reminder in reminders %}    
-    <li>
-         
-        <form action="/{{reminder['pk']}}" method="POST">
-            <input name="reminder-method" type="submit" 
-            value={{"Call" if reminder['remind_method'] == "call" else "Text"}}>
-            <input name="reminder-reocc" type="submit" 
-            value="{{"Reoccurring" if reminder['reoccurring'] == "true" else "One Time"}}">
-            - {{reminder['time']}} 
-            - {{reminder['message']}}
-            <a href="/delete-item/reminder/{{reminder['pk']}}">del</a>
-            <a href="/edit-reminder-{{reminder['pk']}}">edit</a>
-        </form>
-    </li>
-    {% endfor %}
-    </ul>
-</section>
 <section>
     <form action="/" method="POST">
         <h3>Create a notebag</h3>        
@@ -76,38 +42,6 @@
 </section>
 <section>
     <form action="/" method="POST">
-        <h3>Save an Idea:</h3>
-        <textarea type="text" name="message" placeholder="type here"></textarea>
-        <input type="submit" name="idea" value="Add">
-    </form>
-    <ul>
-    {% for idea in ideas %}
-    <li>
-        {{idea['message']}} 
-        <a href="/delete-item/idea/{{idea['pk']}}">del</a>
-        <a href="/edit-idea-{{idea['pk']}}">edit</a>
-    </li>
-    {% endfor %}
-    </ul>
-</section>
-<section>
-    <form action="/" method="POST">
-        <h3>Save a Quote:</h3>
-        <textarea type="text" name="quote" placeholder="type here"></textarea>
-        <input type="submit" name="quote" value="Add">
-    </form>
-    <ul>
-    {% for quote in quotes %}
-        <li>
-            {{quote['quote']}} 
-            <a href="/delete-item/quote/{{quote['pk']}}">del</a>
-            <a href="/edit-quote-{{quote['pk']}}">edit</a>
-        </li>
-    {% endfor %}
-    </ul>
-</section>
-<section>
-    <form action="/" method="POST">
         <h3>Save a Link:</h3>
         <textarea type="text" name="link" placeholder="type here"></textarea>
         <input type="submit" name="link" value="Add">
@@ -123,8 +57,6 @@
     </ul>
 </section>
 
-{% else %}
-not logged in!
 {% endif %}
 {% endblock %}
 
