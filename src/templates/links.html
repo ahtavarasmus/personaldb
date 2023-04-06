@@ -11,8 +11,8 @@
     {% for link in links %}
         <li>
             <a target="_blank" href="{{link}}">{{link}}</a> 
-            <a href="/delete-item/link/{{link['pk']}}">del</a>
-            <a href="/edit-link-{{link['pk']}}">edit</a>
+            <a href="/delete-item/link/{{link}}">del</a>
+            <a href="/edit-link-{{link}}">edit</a>
         </li>
     {% endfor %}
     </ul>

@@ -331,6 +331,30 @@ def edit_reminder(pk):
                            method=reminder.remind_method
                            )
 
+
+@routes.route("/edit-link-<link>", methods=['POST','GET'])
+def edit_link(link):
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+    if request.method == 'POST':
+        new_link = request.form.get('link')
+        user = User.find(User.pk == user).first()
+        user.links.remove(link)
+        if new_link == "":
+            flash("Link deleted")
+        else:
+            user.links.append(new_link)
+            flash("Link edited")
+
+        user.save()
+        return redirect(url_for('routes.links'))
+    return render_template('edit_link.html',
+                           user=user,
+                           link=link)
+
+
 # -------------------------------------------------------------------------
 #                                 DELETING 
 # -------------------------------------------------------------------------
@@ -369,8 +393,14 @@ def delete_item(item_type, item_pk):
             flash("Notebag deleted")
         else:
             flash("Couldn't delete notebag")
+    elif item_type == "link":
+        user = User.find(User.pk == user).first()
+        user.links.remove(item_pk)
+        print("----",item_pk)
+        user.save()
+        flash("Link deleted")
 
-    return redirect(url_for('routes.home'))
+    return redirect(url_for('routes.links'))
 
 
 

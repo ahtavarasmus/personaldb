@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}Edit link{% endblock %}
+{% block content %}
+<form action="/edit-link-{{link}}" method="POST">
+    <textarea type="text" name="link">{{link}}</textarea>
+    <input type="submit" name="link" value="Confirm">
+</form>
+{% endblock %}
