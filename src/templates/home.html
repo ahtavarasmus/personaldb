@@ -2,44 +2,6 @@
 {% block title %}Home{% endblock %}
 {% block content %}
 {% if session.get('user',default=None) != None %}
-<section>
-    <form action="/" method="POST">
-        <h3>Create a notebag</h3>        
-        <label for="bag-name">Bag Name</label>
-        <input name="bag-name" type="text">
-        <input type="submit" name="bag-name" value="Create">
-    </form>
-    <ul>
-        {% for notebag in notebags %}
-        <li>
-            <form action="/note-to-{{notebag['name']}}" method="POST">
-            <textarea type="text" name="note" placeholder="note to bag: {{notebag['name']}}"></textarea>
-            <input type="submit" name="note" value="Add">
-            {% if notebag['name'] != "main" %}
-            <a href="/delete-item/notebag/{{notebag['name']}}">del</a>
-            {% endif %}
-            </form>
-            {% for note in notebag['notes'] %}
-            <ul>
-                <li>{{note['time']}} - {{note['message']}} 
-                    <a href="/delete-item/note/{{note['pk']}}">del</a>
-
-
-                <select onchange="location = this.options[this.selectedIndex].value;">
-                    <option value="" selected disabled>Move to</option>
-                    {% for notebag in notebags %}
-                    <option value="/move-{{note['pk']}}-to-{{notebag['name']}}">{{notebag['name']}}</option>
-                    {% endfor %}
-                </select>
-
-                </li>
-
-            </ul>
-            {% endfor %}
-        </li>
-        {% endfor %}
-    </ul>
-</section>
 {% endif %}
 {% endblock %}
 

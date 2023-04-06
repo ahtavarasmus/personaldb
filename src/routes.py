@@ -27,30 +27,13 @@ def home(item_pk=None):
     #        i.time = int(round(datetime.now().timestamp()))
     #        i.save()
 
-
     if request.method == 'POST':
-        handle_request_form(request.form, user,item_pk)
         return redirect(url_for('routes.home'))
 
-    if user:
-        reminders, ideas, notebags, quotes,links = get_user_data(user)
-        user_dict = User.find(User.pk == user).first().dict()
-    else:
-        reminders = []
-        ideas = []
-        notebags = []
-        quotes = []
-        user_dict = {}
-        links = []
 
     return render_template('home.html',
                            session=session,
-                           user=user_dict,
-                           reminders=reminders,
-                           ideas=ideas,
-                           notebags=notebags,
-                           quotes=quotes,
-                           links=links
+                           user=user,
                            )
 
     
@@ -188,6 +171,21 @@ def links():
                            links=user_all_links(user)
                            )
 
+@routes.route("/notes",methods=['POST','GET'])
+def notes():
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+    if request.method == 'POST':
+        bagname = request.form['bag-name']
+        save_notebag(user, bagname)
+        flash("note bag created")
+        return redirect(url_for('routes.notes'))
+    return render_template('notes.html',
+                           user=user,
+                           notebags=user_all_notebags(user)
+                           )
 
 
 # -------------------------- EDITING/SAVING --------------------------
@@ -388,19 +386,21 @@ def delete_item(item_type, item_pk):
             flash("Note deleted")
         else:
             flash("couldn't delete note")
+        return redirect(url_for('routes.notes'))
     elif item_type == "notebag":
         if delete_notebag(user,item_pk):
             flash("Notebag deleted")
         else:
             flash("Couldn't delete notebag")
+            return redirect(url_for('routes.notes'))
     elif item_type == "link":
         user = User.find(User.pk == user).first()
         user.links.remove(item_pk)
-        print("----",item_pk)
         user.save()
         flash("Link deleted")
+        return redirect(url_for('routes.links'))
 
-    return redirect(url_for('routes.links'))
+    return redirect(url_for('routes.home'))
 
 
 
