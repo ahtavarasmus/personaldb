@@ -34,6 +34,7 @@ def home(item_pk=None):
     return render_template('home.html',
                            session=session,
                            user=user,
+                           page="home"
                            )
 
     
@@ -81,7 +82,8 @@ def settings():
         
     
     return render_template('settings.html',
-                           user=user
+                           user=user,
+                           page="settings"
                            )
 
 @routes.route("/ideas",methods=['POST','GET'])
@@ -99,6 +101,7 @@ def ideas():
     ideas = user_all_ideas(user)
     return render_template('ideas.html',
                            user=user,
+                           page="ideas",
                            ideas=ideas
                            )
 
@@ -138,7 +141,8 @@ def reminders(item_pk=None):
         return redirect(url_for('routes.reminders'))
     return render_template('reminders.html',
                            user=user,
-                           reminders=user_all_reminders(user)
+                           reminders=user_all_reminders(user),
+                           page="reminders"
                            )
 
 @routes.route("/quotes",methods=['POST','GET'])
@@ -153,7 +157,8 @@ def quotes():
         return redirect(url_for('routes.quotes'))
     return render_template('quotes.html',
                            user=user,
-                           quotes=user_all_quotes(user)
+                           quotes=user_all_quotes(user),
+                           page="quotes"
                            )
 
 @routes.route("/links",methods=['POST','GET'])
@@ -168,7 +173,8 @@ def links():
         return redirect(url_for('routes.links'))
     return render_template('links.html',
                            user=user,
-                           links=user_all_links(user)
+                           links=user_all_links(user),
+                           page="links"
                            )
 
 @routes.route("/notes",methods=['POST','GET'])
@@ -184,14 +190,15 @@ def notes():
         return redirect(url_for('routes.notes'))
     return render_template('notes.html',
                            user=user,
-                           notebags=user_all_notebags(user)
+                           notebags=user_all_notebags(user),
+                           page="notes"
                            )
 
 
 # -------------------------- EDITING/SAVING --------------------------
 # --------------------------------------------------------------------
 
-@routes.route("/move-<note_pk>-to-<bag_name>",methods=['POST','GET'])
+@routes.route("/move-<note_pk>-to-<bag_name>",methods=['POST'])
 def move_to(note_pk,bag_name):
     flash("here")
     user = session.get('user',default="")
@@ -250,6 +257,7 @@ def edit_idea(pk):
 
     return render_template('edit_idea.html',
                            user=user,
+                           page="ideas",
                            cur_idea=cur_idea)
 
 @routes.route("/edit-quote-<pk>", methods=['POST','GET'])
@@ -274,6 +282,7 @@ def edit_quote(pk):
 
     return render_template('edit_quote.html',
                            user=user,
+                           page="quotes",
                            cur_quote=cur_quote)
 
 
@@ -325,6 +334,7 @@ def edit_reminder(pk):
                            user=user,
                            message=rem_message_str,
                            reminder_pk=pk,
+                           page="reminders",
                            reocc=reminder.reoccurring,
                            method=reminder.remind_method
                            )
@@ -350,6 +360,7 @@ def edit_link(link):
         return redirect(url_for('routes.links'))
     return render_template('edit_link.html',
                            user=user,
+                           page="links",
                            link=link)
 
 

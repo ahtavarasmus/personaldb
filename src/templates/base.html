@@ -21,13 +21,35 @@
                 <li><a href="/logout">Logout</a></li>
                 <p>logged in as {{user['username']}}</p>
                 <select onchange="location = this.options[this.selectedIndex].value;">
-                    <option value="" selected disabled>Select a page</option>
+                    {% if page == "home" %}
+                    <option value="/" selected>Home</option>
+                    {% else %}
+                    <option value="/">Home</option>
+                    {% endif %}{% if page == "reminders" %}
+                    <option value="/reminders" selected >Reminders</option>
+                    {% else %}
                     <option value="/reminders">Reminders</option>
+                    {% endif %}{% if page == "ideas" %}
+                    <option value="/ideas" selected>Ideas</option>
+                    {% else %}
                     <option value="/ideas">Ideas</option>
-                    <option value="/notes">Notes</option>
-                    <option value="/quotes">Quotes</option>
+                    {% endif %}{% if page == "notes" %}
+                    <option value="/notes" selected>Notes</option>
+                    {% else %}
+                    <option value="/notes" >Notes</option>
+                    {% endif %}{% if page == "quotes" %}
+                    <option value="/quotes" selected>Quotes</option>
+                    {% else %}
+                    <option value="/quotes" >Quotes</option>
+                    {% endif %}{% if page == "links" %}
+                    <option value="/links" selected>Links</option>
+                    {% else %}
                     <option value="/links">Links</option>
+                    {% endif %}{% if page == "settings" %}
+                    <option value="/settings" selected>Settings</option>
+                    {% else %}
                     <option value="/settings">Settings</option>
+                    {% endif %}
 
                 </select>
                 {% else %}
