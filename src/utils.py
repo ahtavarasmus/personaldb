@@ -41,49 +41,13 @@ def get_user_data(user_pk):
 
     return reminders, ideas, notebags, quotes,links
 
-def handle_reminder_form(request_form, user_pk, item_pk):
-    if "reminder-new" in request_form:
-        msg = request_form['message']
-        time_str = request_form['time']
-        save_reminder(user_pk, msg, time_str)
-        return
-    try:
-        reminder = Reminder.find(Reminder.pk == item_pk).first()
-    except:
-        flash("couldn't find the reminder")
-        return
-    if "reminder-reocc" in request_form:
-        if reminder.reoccurring == "true":
-            reminder.reoccurring = "false"
-        else:
-            reminder.reoccurring = "true"
-        reminder.save()
-    elif "reminder-method" in request_form:
-        if reminder.remind_method == "call":
-            reminder.remind_method = "text"
-        else:
-            reminder.remind_method = "call"
-        reminder.save()
-       
+      
 
 
 def handle_request_form(request_form, user_pk,item_pk):
     if "bag-name" in request_form:
         name = request_form.get("bag-name")
         save_notebag(user_pk, name)
-    elif "quote" in request_form:
-        msg = request_form['quote']
-        save_quote(user_pk, msg)
-    elif "link" in request_form:
-        link = request_form['link']
-        save_link(user_pk, link)
-
-
-    elif "reminder" or "reminder-reocc" or "reminder-method" in request_form:
-        flash("here")
-        flash(request_form.get('reminder-method'))
-        handle_reminder_form(request_form,user_pk,item_pk)
-
 
 def format_quotes(quotes):
     response = []

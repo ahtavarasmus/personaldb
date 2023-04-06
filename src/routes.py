@@ -173,6 +173,20 @@ def quotes():
                            quotes=user_all_quotes(user)
                            )
 
+@routes.route("/links",methods=['POST','GET'])
+def links():
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+    if request.method == 'POST':
+        link = request.form['link']
+        save_link(user, link)
+        return redirect(url_for('routes.links'))
+    return render_template('links.html',
+                           user=user,
+                           links=user_all_links(user)
+                           )
 
 
 
