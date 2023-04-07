@@ -568,6 +568,19 @@ def sms_webhook():
                 message = f"Reminder '{to_parse}' saved."
             else:
                 message = "Error. Could not save the reminder"
+    elif body.startswith("c "):
+        response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You turn the given text into exact same text but with all the letters that are incorrectly 'a' instead of 'ä' or 'o' instead of 'ö', you replace them with the correct ones according to context and finnish language. You don't change the text or words in a text anyway other than replacing 'a' or 'o' letters if necessary. Keep letter capitalization as it is in the original text. Output only the text."},
+            {"role": "user", "content": "Tanaan saan pitaisi parantua, joten voimme menna ulkoilemaan metsaan ja kerata sienia seka marjoja ampariin."},
+            {"role": "assistant", "content": "Tänään sään pitäisi parantua, joten voimme mennä ulkoilemaan metsään ja kerätä sieniä sekä marjoja ämpäriin."},
+            {"role": "user", "content": "ma en ymmarra, miks sa et parjaa tan homman kanssa."},
+            {"role": "assistant", "content": "mä en ymmärrä, miks sä et pärjää tän homman kanssa."},
+            {"role": "user","content": f"{body[2:]}"},
+            ]
+        )
+        message = response["choices"][0]["message"]["content"]
 
     else:
         message = 'Wrong keyword. Type "h" for help.'
