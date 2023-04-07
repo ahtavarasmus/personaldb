@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from twilio.twiml import re
 from twilio.twiml.messaging_response import MessagingResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
+import openai
 from datetime import datetime, timedelta
 from .utils import *
 from .models import User,Settings,Idea
@@ -11,6 +12,10 @@ import random
 
 tz = timezone(timedelta(hours=2))
 
+with open('/etc/personaldb_config.json') as config_file:
+    config = json.load(config_file)
+
+openai.api_key = config.get('OPENAI_API_KEY')
 
 routes = Blueprint('routes',__name__,template_folder='templates')
 
@@ -493,7 +498,7 @@ def sms_webhook():
         t = re.search(r"\d+\/\d+\/\d+",body[2:])
         t2 = re.search(r"\d+\:\d+",body[2:])
         if t == None or t2 == None:
-            message = 'Error. Date format not right. See-> '
+            message = 'Error. Date format not right.'
         else:
             time = t.group() + " " + t2.group()
             msg = ""
@@ -530,13 +535,39 @@ def sms_webhook():
                     message = f"Timer for {minutes}min started"
                 else:
                     message = f'Error. Another timer already going. Use "t stop" to stop it'
-    elif body.startswith("n "):
-        # interface for adding notes
-        if len(body) > 3:
-            if save_note(user.pk,"main",body[2:]):
-                message = "Note saved."
+    elif body.startswith("rai "):
+        response = openai.ChatCompletion.create(
+          model="gpt-3.5-turbo",
+          messages=[
+              {"role": "system", "content": "You turn given text prompts into reminder message and date and time, formatted as '<message> <day>/<month>/<year_last_two_numbers> <hour_in_24_format>:<minutes>'. For example given prompt 'a day after new year 2023 12pm there is a conference' would be turned into 'conference 2/1/23 12:00'. Date is formatted in order: day/month/year hour/minute. You are using timezone UTC+2h. Output only the reminder message, day and time and nothing else."},
+                {"role": "user", "content": "tomorrow 1pm lunch with John"},
+                {"role": "assistant", "content": "lunch with john 8/4/23 13:00"},
+                {"role": "user", "content": "7am the day after new year 2023 remind me that i got this"},
+                {"role": "assistant", "content": "you got it 2/1/23 7:00"},
+                {"role": "user", "content": f"{body[4:]}"},
+            ]
+        )
+        to_parse = response["choices"][0]["message"]["content"]
+
+        t = re.search(r"\d+\/\d+\/\d+",to_parse)
+        t2 = re.search(r"\d+\:\d+",to_parse)
+        if t == None or t2 == None:
+            message = 'Error. Date format not right.'
+        else:
+            time = t.group() + " " + t2.group()
+            msg = ""
+            first_add = True
+            for x in to_parse.split():
+                if x != t.group() and x != t2.group():
+                    if first_add:
+                        msg += x
+                        first_add = False
+                    else:
+                        msg += " "+x
+            if save_reminder(str(user.pk),msg,time):
+                message = f"Reminder '{to_parse}' saved."
             else:
-                message = "Error. Couldn't save the note"
+                message = "Error. Could not save the reminder"
 
     else:
         message = 'Wrong keyword. Type "h" for help.'
