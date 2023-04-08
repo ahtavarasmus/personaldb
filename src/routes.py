@@ -124,7 +124,7 @@ def reminders(item_pk=None):
             msg = request.form['message']
             time_str = request.form['time']
             save_reminder(user, msg, time_str)
-            return
+            return redirect(url_for('routes.reminders'))
         try:
             reminder = Reminder.find(Reminder.pk == item_pk).first()
         except:
