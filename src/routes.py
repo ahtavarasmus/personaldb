@@ -32,6 +32,7 @@ def home(item_pk=None):
     #    if not hasattr(i_dict,'time'):
     #        i.time = int(round(datetime.now().timestamp()))
     #        i.save()
+    recording_test(user)
 
     if request.method == 'POST':
         return redirect(url_for('routes.home'))

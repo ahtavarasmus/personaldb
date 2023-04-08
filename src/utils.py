@@ -429,3 +429,9 @@ def load_test_data():
 
 
 
+def recording_test(user_pk):
+    recs = client.recordings.list()
+    latest = recs[0]
+    recording_url = latest.uri.replace('.json','.mp3')
+    recording_url = f'https://api.twilio.com{recording_url}'
+    flash(recording_url)
