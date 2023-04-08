@@ -1,4 +1,5 @@
 from .utils import *
+from random import shuffle
 from .models import User
 from celery import shared_task
 
@@ -16,7 +17,12 @@ def every_minute():
         if rem['remind_method'] == "call":
             call(str(user['phone']),rem['message'])
         else: # text
-            text(str(user['phone']),f"Remember: {rem['message']}")
+            msg = rem['message']
+            if msg == "quote":
+                quotes = user['quotes']
+                shuffle(quotes)
+                msg = quotes[0]
+            text(str(user['phone']),msg)
         if rem['reoccurring'] == "true":
             new_time = int(round((rem['time']+timedelta(days=1)).timestamp()))
             new_reminder = Reminder(user=rem['user'],
