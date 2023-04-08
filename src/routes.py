@@ -2,6 +2,7 @@ from flask import (Blueprint, render_template,request,redirect,url_for,session,f
 from flask_login import login_required, current_user
 from twilio.twiml import re
 from twilio.twiml.messaging_response import MessagingResponse
+from twilio.twiml.voice_response import VoiceResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
 import openai
 from datetime import datetime, timedelta
@@ -418,6 +419,14 @@ def delete_item(item_type, item_pk):
 
     return redirect(url_for('routes.home'))
 
+
+@routes.route("/call-webhook", methods=['POST'])
+def call_webhook():
+    response = VoiceResponse()
+    response.say("hey")
+    response.record()
+    response.hangup()
+    return str(response)
 
 
 @routes.route("/sms-webhook",methods=['POST'])
