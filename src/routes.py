@@ -444,7 +444,7 @@ def call_webhook():
     #text(phn,text_rec)
     #print(phn)
     #print(text_rec)
-    #threading.Thread(target=get_latest_recording, args=(user['pk'], phn)).start()
+    threading.Thread(target=get_latest_recording, args=(user['pk'], phn)).start()
     return str(response)
 
 

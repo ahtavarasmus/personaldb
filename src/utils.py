@@ -451,7 +451,14 @@ def latest_recording_text():
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
     audio_file = open(local_file, "rb")
-    transcript = openai.Audio.transcribe("whisper-1", audio_file)
+    transcript = openai.Audio.translate(
+                            model = "whisper-1", 
+                            file = audio_file,
+                            options = {
+                        "language" : "en",           # this is ISO 639-1 format as recommended in the docs
+                        "response_format" : "json",
+                        "temperature" : "0"
+                        })
 
-    return transcript['text']
+    return transcript.text
 
