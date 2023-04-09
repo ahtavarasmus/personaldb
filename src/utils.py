@@ -453,5 +453,5 @@ def latest_recording_text():
     audio_file = open(local_file, "rb")
     transcript = openai.Audio.transcribe("whisper-1", audio_file)
 
-    return transcript['text']
+    return transcript
 
