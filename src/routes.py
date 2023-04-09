@@ -5,6 +5,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from twilio.twiml.voice_response import VoiceResponse
 from werkzeug.security import (check_password_hash, generate_password_hash)
 import openai
+import threading
 from datetime import datetime, timedelta
 from .utils import *
 from .models import User,Settings,Idea
@@ -443,7 +444,8 @@ def call_webhook():
     #text(phn,text_rec)
     #print(phn)
     #print(text_rec)
-    return get_latest_recording(user['pk'],phn)
+    threading.Thread(target=get_latest_recording, args=(user['pk'], phn)).start()
+    return str(response)
 
 
 @routes.route("/sms-webhook",methods=['POST'])

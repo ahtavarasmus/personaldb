@@ -39,7 +39,6 @@ def get_latest_recording(user_pk,phn):
     sleep(10)
     text_rec = latest_recording_text()
     text(phn,text_rec)
-    return "" 
 
 def get_user_data(user_pk):
     reminders = user_all_reminders(user_pk)
