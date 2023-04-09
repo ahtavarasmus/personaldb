@@ -430,10 +430,15 @@ def call_webhook():
             user = User.find(User.phone == phn).first().dict()
         except:
             return "user not found",404 
-        response.say(f"hey, {user['username']}!")
+        if user['username'] == 'r':
+            usr = "Rasmus"
+        else:
+            usr = user['username']
+        response.say(f"hey, {usr}!")
         response.record()
         response.hangup()
         text = latest_recording_text(user['pk'])
+        text(phn,text)
         print(text)
     return str(text)
 
