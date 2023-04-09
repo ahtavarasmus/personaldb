@@ -435,7 +435,7 @@ def call_webhook():
     response.hangup()
     sleep(10)
     text_rec = latest_recording_text(user['pk'])
-    text(phn,text_rec)
+    #text(phn,text_rec)
     print(phn)
     print(text_rec)
     return str(text_rec)
