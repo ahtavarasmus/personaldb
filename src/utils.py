@@ -68,8 +68,6 @@ def turn_text_to_reminder_format(text):
           model="gpt-3.5-turbo",
           messages=[
               {"role": "system", "content": "You turn given text prompts into reminder message and date and time, formatted as '<message> <day>/<month>/<year_last_two_numbers> <hour_in_24_format>:<minutes>'. For example given prompt 'a day after new year 2023 12pm there is a conference' would be turned into 'conference 2/1/23 12:00'. Date is formatted in order: day/month/year hour/minute. You are using timezone UTC+2h. Output only the reminder message, day and time and nothing else."},
-                {"role": "user", "content": "tomorrow 1pm lunch with John"},
-                {"role": "assistant", "content": "lunch with john 8/4/23 13:00"},
                 {"role": "user", "content": "7am the day after new year 2023 remind me that i got this"},
                 {"role": "assistant", "content": "you got it 2/1/23 7:00"},
                 {"role": "user", "content": f"{text}"},
