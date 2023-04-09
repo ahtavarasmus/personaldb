@@ -435,7 +435,7 @@ def call_webhook():
     response.say(f"hey,{phn}")
     response.record()
     response.hangup()
-    sleep(15)
+    #sleep(15)
     #text_rec = latest_recording_text(user['pk'])
     text(phn,phn)
     #print(phn)
