@@ -1,11 +1,13 @@
 # External
-from flask import session,flash
+from flask import session,flash,send_file
 from pydantic import NonNegativeFloat
 from twilio.rest import Client
 from redis_om import NotFoundError
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from operator import itemgetter
+import requests
 import json
+import openai
 import random
 
 # Internal
@@ -429,9 +431,21 @@ def load_test_data():
 
 
 
-def recording_test(user_pk):
+def latest_recording_text(user_pk):
     recs = client.recordings.list()
     latest = recs[0]
     recording_url = latest.uri.replace('.json','.mp3')
     recording_url = f'https://api.twilio.com{recording_url}'
-    flash(recording_url)
+        # Download the file
+    response = requests.get(recording_url, stream=True)
+
+    # Create a temporary file to store the downloaded file
+    local_file = 'temp_recording.mp3'
+    with open(local_file, 'wb') as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+    audio_file = open(local_file, "rb")
+    transcript = openai.Audio.transcribe("whisper-1", audio_file)
+
+    return transcript['text']
+

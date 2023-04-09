@@ -32,7 +32,6 @@ def home(item_pk=None):
     #    if not hasattr(i_dict,'time'):
     #        i.time = int(round(datetime.now().timestamp()))
     #        i.save()
-    recording_test(user)
 
     if request.method == 'POST':
         return redirect(url_for('routes.home'))
@@ -421,13 +420,22 @@ def delete_item(item_type, item_pk):
     return redirect(url_for('routes.home'))
 
 
-@routes.route("/call-webhook", methods=['POST'])
+@routes.route("/call-webhook", methods=['POST','GET'])
 def call_webhook():
     response = VoiceResponse()
-    response.say("hey")
-    response.record()
-    response.hangup()
-    return str(response)
+    text = ""
+    if request.method == 'POST':
+        phn = request.values.get('From')
+        try:
+            user = User.find(User.phone == phn).first().dict()
+        except:
+            return "user not found",404 
+        response.say(f"hey, {user['username']}!")
+        response.record()
+        response.hangup()
+        text = latest_recording_text(user['pk'])
+        print(text)
+    return str(text)
 
 
 @routes.route("/sms-webhook",methods=['POST'])
