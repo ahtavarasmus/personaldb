@@ -433,6 +433,13 @@ def load_test_data():
 
 def latest_recording_text(user_pk):
     recs = client.recordings.list()
+    found = False
+    for rec in recs:
+        if rec.date_created > datetime.now() - timedelta(minutes=1):
+            found = True
+
+    if not found:
+        return None
     latest = recs[0]
     recording_url = latest.uri.replace('.json','.mp3')
     recording_url = f'https://api.twilio.com{recording_url}'
