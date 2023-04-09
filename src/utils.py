@@ -36,7 +36,7 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 #-------------------------------------------------------------------------
 
 def get_latest_recording(user_pk,phn):
-    sleep(10)
+    sleep(20)
     text_rec = latest_recording_text()
     text(phn,text_rec)
 
