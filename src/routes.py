@@ -423,7 +423,7 @@ def delete_item(item_type, item_pk):
 @routes.route("/call-webhook", methods=['POST','GET'])
 def call_webhook():
     response = VoiceResponse()
-    text = ""
+    text_rec = ""
     if request.method == 'POST':
         phn = request.values.get('From')
         try:
@@ -443,8 +443,8 @@ def call_webhook():
             print("Type rec: ",type(text_rec))
             text(phn,text_rec)
         print(phn)
-        print(text)
-    return str(text)
+        print(text_rec)
+    return str(text_rec)
 
 
 @routes.route("/sms-webhook",methods=['POST'])
