@@ -5,6 +5,7 @@ from twilio.rest import Client
 from redis_om import NotFoundError
 from werkzeug.security import (check_password_hash, generate_password_hash)
 from operator import itemgetter
+from time import sleep
 import requests
 import json
 import openai
@@ -34,8 +35,11 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 # ----------------------- UTILITY ----------------------------------------
 #-------------------------------------------------------------------------
 
-def get_latest_recording(user_pk):
-    return ""
+def get_latest_recording(user_pk,phn):
+    sleep(10)
+    text_rec = latest_recording_text()
+    text(phn,text_rec)
+    return "" 
 
 def get_user_data(user_pk):
     reminders = user_all_reminders(user_pk)
