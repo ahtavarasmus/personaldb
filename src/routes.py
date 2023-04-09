@@ -439,6 +439,8 @@ def call_webhook():
         response.hangup()
         text_rec = latest_recording_text(user['pk'])
         if text_rec != None:
+            print("TEXT REC: ",text_rec)
+            print("Type rec: ",type(text_rec))
             text(phn,text_rec)
         print(phn)
         print(text)
