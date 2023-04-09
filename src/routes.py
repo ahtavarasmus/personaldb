@@ -438,6 +438,7 @@ def call_webhook():
     response.say(f"hey,{user['username']}")
     response.record()
     response.hangup()
+    sleep(15)
     # only not none if in last minute 
     while (latest_recording_text(user['pk']) == None):
         continue 
