@@ -443,7 +443,7 @@ def call_webhook():
     #text(phn,text_rec)
     #print(phn)
     #print(text_rec)
-    return str(response)
+    return get_latest_recoding(user['pk'])
 
 
 @routes.route("/sms-webhook",methods=['POST'])

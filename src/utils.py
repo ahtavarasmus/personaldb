@@ -34,6 +34,9 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 # ----------------------- UTILITY ----------------------------------------
 #-------------------------------------------------------------------------
 
+def get_latest_recording(user_pk):
+    return ""
+
 def get_user_data(user_pk):
     reminders = user_all_reminders(user_pk)
     ideas = user_all_ideas(user_pk)
