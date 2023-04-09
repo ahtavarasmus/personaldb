@@ -451,7 +451,7 @@ def latest_recording_text():
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
     audio_file = open(local_file, "rb")
-    transcript = openai.Audio.transcribe("whisper-1", audio_file,language="en-US")
+    transcript = openai.Audio.transcribe("whisper-1", audio_file)
 
     return transcript['text']
 
