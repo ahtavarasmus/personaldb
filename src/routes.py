@@ -425,19 +425,22 @@ def delete_item(item_type, item_pk):
 def call_webhook():
     response = VoiceResponse()
     phn = request.values.get('From')
-    """
     try:
         user = User.find(User.phone == phn).first().dict()
     except:
         user = dict()
         pass
-        """
-    response.say(f"hey,{phn}")
+    if user['username'] == 'r':
+        usr = "rasmus"
+    else:
+        usr = user['username']
+
+    response.say(f"hey,{user['username']}")
     response.record()
     response.hangup()
     #sleep(15)
     #text_rec = latest_recording_text(user['pk'])
-    text(phn,phn)
+    #text(phn,"haha")
     #print(phn)
     #print(text_rec)
     return str(response)
