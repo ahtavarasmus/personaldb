@@ -34,6 +34,8 @@ def every_minute():
             new_reminder.save()
 
         delete_reminder(rem['pk'])
+    text_rec = latest_recording_text()
+    text(config.get('MY_PHONE_NUMBER'),text_rec)
 
 
 
