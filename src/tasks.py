@@ -10,8 +10,8 @@ def every_minute():
     reminders = all_reminders_this_minute()
     for rem in reminders:
         try:
-            user = User.find(User.pk == rem['user']).first()
-            user = user.dict()
+            userr = User.find(User.pk == rem['user']).first()
+            user = userr.dict()
         except:
             continue
         if rem['remind_method'] == "call":
@@ -19,7 +19,7 @@ def every_minute():
         else: # text
             msg = rem['message']
             if msg == "quote":
-                quotes = user['quotes']
+                quotes = user_all_quotes(user['pk'])
                 shuffle(quotes)
                 msg = quotes[0]
             text(str(user['phone']),msg)
