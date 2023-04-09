@@ -566,10 +566,13 @@ def sms_webhook():
     elif body.startswith("rai "):
         to_parse = turn_text_to_reminder_format(body[4:])
 
-        
+
+
         if not correct_reminder_format(to_parse):
             message = 'Error. Date format not right.'
         else:
+            t = re.search(r"\d+\/\d+\/\d+",to_parse)
+            t2 = re.search(r"\d+\:\d+",to_parse)
             time = t.group() + " " + t2.group()
             msg = ""
             first_add = True
