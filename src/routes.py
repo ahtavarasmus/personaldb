@@ -437,8 +437,10 @@ def call_webhook():
         response.say(f"hey, {usr}!")
         response.record()
         response.hangup()
-        text = latest_recording_text(user['pk'])
-        text(phn,text)
+        text_rec = latest_recording_text(user['pk'])
+        if text_rec != None:
+            text(phn,text_rec)
+        print(phn)
         print(text)
     return str(text)
 
