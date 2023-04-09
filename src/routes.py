@@ -8,6 +8,7 @@ import openai
 from datetime import datetime, timedelta
 from .utils import *
 from .models import User,Settings,Idea
+from time import sleep
 import json
 import random
 
@@ -423,27 +424,20 @@ def delete_item(item_type, item_pk):
 @routes.route("/call-webhook", methods=['POST','GET'])
 def call_webhook():
     response = VoiceResponse()
-    text_rec = ""
-    if request.method == 'POST':
-        phn = request.values.get('From')
-        try:
-            user = User.find(User.phone == phn).first().dict()
-        except:
-            return "user not found",404 
-        if user['username'] == 'r':
-            usr = "Rasmus"
-        else:
-            usr = user['username']
-        response.say(f"hey, {usr}!")
-        response.record()
-        response.hangup()
-        text_rec = latest_recording_text(user['pk'])
-        if text_rec != None:
-            print("TEXT REC: ",text_rec)
-            print("Type rec: ",type(text_rec))
-            text(phn,text_rec)
-        print(phn)
-        print(text_rec)
+    phn = request.values.get('From')
+    try:
+        user = User.find(User.phone == phn).first().dict()
+    except:
+        user = dict()
+        pass
+    response.say(f"hey, {user['username']}!")
+    response.record()
+    response.hangup()
+    sleep(10)
+    text_rec = latest_recording_text(user['pk'])
+    text(phn,text_rec)
+    print(phn)
+    print(text_rec)
     return str(text_rec)
 
 
