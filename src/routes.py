@@ -425,20 +425,22 @@ def delete_item(item_type, item_pk):
 def call_webhook():
     response = VoiceResponse()
     phn = request.values.get('From')
+    """
     try:
         user = User.find(User.phone == phn).first().dict()
     except:
         user = dict()
         pass
-    response.say(f"hey, {user['username']}!")
+        """
+    response.say(f"hey,{phn}")
     response.record()
     response.hangup()
-    sleep(10)
-    text_rec = latest_recording_text(user['pk'])
+    #sleep(10)
+    #text_rec = latest_recording_text(user['pk'])
     #text(phn,text_rec)
-    print(phn)
-    print(text_rec)
-    return str(text_rec)
+    #print(phn)
+    #print(text_rec)
+    return str(response)
 
 
 @routes.route("/sms-webhook",methods=['POST'])
