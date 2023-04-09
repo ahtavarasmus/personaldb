@@ -7,6 +7,7 @@ from werkzeug.security import (check_password_hash, generate_password_hash)
 from operator import itemgetter
 from time import sleep
 import requests
+import re
 import json
 import openai
 import random
@@ -35,10 +36,61 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 # ----------------------- UTILITY ----------------------------------------
 #-------------------------------------------------------------------------
 
+
+def process_speech(user_pk,user_phone):
+    text_rec = get_latest_recording(user_pk,user_phone)
+
+    #TODO process what the text means here 
+    reminder_format = turn_text_to_reminder_format(text_rec)
+    if correct_reminder_format(reminder_format):
+        t = re.search(r"\d+\/\d+\/\d+",reminder_format)
+        t2 = re.search(r"\d+\:\d+",reminder_format)
+        if t == None or t2 == None:
+            return False
+
+        time = t.group() + " " + t2.group()
+        msg = ""
+        first_add = True
+        for x in reminder_format.split():
+            if x != t.group() and x != t2.group():
+                if first_add:
+                    msg += x
+                    first_add = False
+                else:
+                    msg += " "+x
+
+        save_reminder(user_pk,msg,time)
+        return True
+    return False
+
+def turn_text_to_reminder_format(text):
+    response = openai.ChatCompletion.create(
+          model="gpt-3.5-turbo",
+          messages=[
+              {"role": "system", "content": "You turn given text prompts into reminder message and date and time, formatted as '<message> <day>/<month>/<year_last_two_numbers> <hour_in_24_format>:<minutes>'. For example given prompt 'a day after new year 2023 12pm there is a conference' would be turned into 'conference 2/1/23 12:00'. Date is formatted in order: day/month/year hour/minute. You are using timezone UTC+2h. Output only the reminder message, day and time and nothing else."},
+                {"role": "user", "content": "tomorrow 1pm lunch with John"},
+                {"role": "assistant", "content": "lunch with john 8/4/23 13:00"},
+                {"role": "user", "content": "7am the day after new year 2023 remind me that i got this"},
+                {"role": "assistant", "content": "you got it 2/1/23 7:00"},
+                {"role": "user", "content": f"{text}"},
+            ]
+        )
+    return response["choices"][0]["message"]["content"]
+
+
+
 def get_latest_recording(user_pk,phn):
     sleep(20)
     text_rec = latest_recording_text()
-    text(phn,text_rec)
+    return text_rec
+
+def correct_reminder_format(text):
+    t = re.search(r"\d+\/\d+\/\d+",text)
+    t2 = re.search(r"\d+\:\d+",text)
+
+    if t == None or t2 == None:
+        return False
+    return True
 
 def get_user_data(user_pk):
     reminders = user_all_reminders(user_pk)
