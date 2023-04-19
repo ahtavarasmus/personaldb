@@ -202,21 +202,28 @@ def notes():
                            page="notes"
                            )
 
-@routes.route("/memes",methods=['POST','GET'])
-def memes():
+@routes.route("/feed",methods=['POST','GET'])
+def feed():
     user = session.get('user',default="")
     if not user:
         flash('login required')
         return redirect(url_for('routes.home'))
 
     if request.method == 'POST':
-        meme = request.form['img']
-        save_meme(user, meme)
-        return redirect(url_for('routes.memes'))
-    return render_template('memes.html',
+        if "img" not in request.files:
+            flash("no image found")
+            return redirect(url_for('routes.feed'))
+        img = request.files['img']
+        url = save_image(user, img)
+        if url:
+            flash(url)
+        else:
+            flash("no url")
+        return redirect(url_for('routes.feed'))
+    return render_template('feed.html',
                            user=user,
-                           memes=user_all_memes(user),
-                           page="memes"
+                           feed=feed(user),
+                           page="feed"
                            )
 
 # -------------------------- EDITING/SAVING --------------------------
@@ -256,7 +263,7 @@ def save_note_to_bag(bag_name):
             flash("error saving the note")
     else:
         flash("note can't be empty")
-    return redirect(url_for('routes.home'))
+    return redirect(url_for('routes.notes'))
  
 
 @routes.route("/edit-idea-<pk>", methods=['POST','GET'])
@@ -322,7 +329,7 @@ def edit_reminder(pk):
         reminder = Reminder.find(Reminder.pk == pk).first()
     except NotFoundError:
         flash("reminder not found")
-        return redirect(url_for('routes.home'))
+        return redirect(url_for('routes.reminders'))
 
     rem_message_str = reminder.dict()['message']
 
@@ -348,11 +355,11 @@ def edit_reminder(pk):
             if msg == "":
                 Reminder.delete(pk)
                 flash("Reminder Deleted")
-                return redirect(url_for('routes.home'))
             else: 
                 reminder.message = msg
                 reminder.save()
                 flash("Message changed")
+            return redirect(url_for('routes.reminders'))
         
     return render_template('edit_reminder.html',
                            user=user,

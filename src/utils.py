@@ -183,6 +183,20 @@ def move_note(user_pk,note_pk,bag_name):
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
 
+def save_image(user_pk,img):
+    ICI = config.get('IMGUR_CLIENT_ID')
+    headers = {'Authorization': f'Client-ID {ICI}'}
+    url = 'https://api.imgur.com/3/image'
+    payload = {'image': img.read()}
+
+    response = requests.post(url, headers=headers, data=payload)
+
+    if response.status_code == 200:
+        image_id = response.json()['data']['link']
+        image_ext = response.json()['data']['type'].split('/')[-1]
+        return f'https://i.imgur.com/{image_id}.{image_ext}'
+    else:
+        return None
 
 def save_link(user_pk,link):
     try:
