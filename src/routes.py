@@ -202,6 +202,22 @@ def notes():
                            page="notes"
                            )
 
+@routes.route("/memes",methods=['POST','GET'])
+def memes():
+    user = session.get('user',default="")
+    if not user:
+        flash('login required')
+        return redirect(url_for('routes.home'))
+
+    if request.method == 'POST':
+        meme = request.form['img']
+        save_meme(user, meme)
+        return redirect(url_for('routes.memes'))
+    return render_template('memes.html',
+                           user=user,
+                           memes=user_all_memes(user),
+                           page="memes"
+                           )
 
 # -------------------------- EDITING/SAVING --------------------------
 # --------------------------------------------------------------------

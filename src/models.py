@@ -18,6 +18,9 @@ class Settings(JsonModel):
 class Quote(JsonModel):
     quote: str = Field(index=True)
 
+class Meme(JsonModel):
+    url: str = Field(index=True,default="")
+
 class User(JsonModel):
     username: str = Field(index=True)
     password: str = Field(index=True)
@@ -26,6 +29,7 @@ class User(JsonModel):
     master_notebag: MasterNoteBag = Field(index=True,default=MasterNoteBag())
     quotes: List[Quote] = Field(index=True,default=[Quote(quote="default")])
     links: List[str] = Field(index=True,default=["https://www.google.com"])
+    memes: List[Meme] = Field(index=True,default=[])
     settings: Settings = Field(index=True,default=Settings()) 
 
 class Reminder(JsonModel):
@@ -43,4 +47,3 @@ class Idea(JsonModel):
 class Timer(JsonModel):
     user: str = Field(index=True)
     time: int = Field(index=True)
-   
