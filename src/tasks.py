@@ -10,9 +10,9 @@ def every_minute():
     reminders = all_reminders_this_minute()
     for rem in reminders:
         try:
-            userr = User.find(User.pk == rem['user']).first()
-            user = userr.dict()
+            user = User.find(User.pk == rem['user']).first().dict()
         except:
+            delete_reminder(rem['pk'])
             continue
         if rem['remind_method'] == "call":
             call(str(user['phone']),rem['message'])

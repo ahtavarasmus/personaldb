@@ -8,12 +8,13 @@ from operator import itemgetter
 from time import sleep
 import requests
 import re
+import pytz
 import json
 import openai
 import random
 
 # Internal
-from .models import Reminder,User,Idea,Timer,Note,NoteBag,Quote
+from .models import Reminder,User,Idea,Timer,Note,NoteBag,Quote,Post
 from datetime import datetime, time,timedelta,timezone
 
 # specific config
@@ -35,6 +36,46 @@ client = Client(config.get('TWILIO_ACCOUNT_SID'),
 
 # ----------------------- UTILITY ----------------------------------------
 #-------------------------------------------------------------------------
+def utc_epoch_to_local_datetime(user_pk,epoch_time_utc):
+    """
+    turns epoch timestamps in utc into datetime objects using user's timezone
+    return datetime, None if user not found
+    """
+    try:
+        user = User.find(User.pk == user_pk).first()
+    except:
+        return None 
+    timezone = pytz.timezone(user.timezone)
+    time_obj_utc = datetime.fromtimestamp(int(epoch_time_utc))
+    time_obj_local = time_obj_utc.astimezone(timezone)
+    return time_obj_local
+
+def to_utc_epoch(user_pk,time_str="now"):
+    """
+    param user_pk: str, user id
+    param time_str: str, time formatted "day/month/year_last_two_nums hour:minute"
+    return epoch time in UTC: int/None
+        -> if time_str empty == current time
+    """
+
+    user = User.find(User.pk == user_pk).first()
+    timezone = pytz.timezone(user.timezone)
+
+    if time_str == "now":
+        time_obj_utc = datetime.now(pytz.utc)
+        # current time in UTC
+    else:
+        try:
+            time_obj = datetime.strptime(time_str, "%d/%m/%y %H:%M")
+            time_obj = timezone.localize(time_obj)
+            time_obj_utc = time_obj.astimezone(pytz.utc)
+        except ValueError:
+            return None 
+
+    time_obj_minute = time_obj_utc.replace(second=0, microsecond=0)
+    epoch_time = int(round(time_obj_minute.timestamp()))
+    return epoch_time
+
 
 
 def process_speech(user_pk,user_phone):
@@ -125,7 +166,11 @@ def format_ideas(ideas):
     response = []
     for idea in ideas:
         i_dict = idea.dict()
-        i_dict['time'] = datetime.fromtimestamp(i_dict['time'])
+        new_time = utc_epoch_to_local_datetime(i_dict['user'],i_dict['time'])
+        if new_time:
+            i_dict['time'] = new_time
+        else:
+            continue
         response.append(i_dict)
     response = sorted(response, key=itemgetter('time'), reverse=True)
     return response
@@ -138,8 +183,14 @@ def format_reminders(reminders):
     response = []
     for reminder in reminders:
         rem_dict = reminder.dict()
-        rem_dict['time'] = datetime.fromtimestamp(rem_dict['time'])
+        new_time = utc_epoch_to_local_datetime(rem_dict['user'],rem_dict['time'])
+        if new_time:
+            rem_dict['time'] = new_time
+        else:
+            delete_reminder(rem_dict['pk'])
+            continue
         response.append(rem_dict)
+
 
     response = sorted(response, key=itemgetter('time'), reverse=True)
     return response
@@ -150,7 +201,8 @@ def format_timers(timers):
     for timer in timers:
         timer_dict = timer.dict()
 
-        timer_dict['time'] = datetime.fromtimestamp(timer_dict['time'])
+        new_time = utc_epoch_to_local_datetime(timer['user'],timer['time'])
+        timer['time'] = new_time
         response.append(timer_dict)
 
     return response
@@ -160,7 +212,9 @@ def format_notebags(notebags):
     for bag in notebags:
         bag_dict = bag.dict()
         for note in bag_dict['notes']:
-            note['time'] = datetime.fromtimestamp(int(note['time']))
+            user = session.get('user',default="")
+            new_time = utc_epoch_to_local_datetime(user,note['time'])
+            note['time'] = new_time
 
         response.append(bag_dict)
 
@@ -183,20 +237,21 @@ def move_note(user_pk,note_pk,bag_name):
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
 
-def save_image(user_pk,img):
+def save_post(user_pk,text,img):
     ICI = config.get('IMGUR_CLIENT_ID')
     headers = {'Authorization': f'Client-ID {ICI}'}
     url = 'https://api.imgur.com/3/image'
     payload = {'image': img.read()}
 
-    response = requests.post(url, headers=headers, data=payload)
+    if img:
+        response = requests.post(url, headers=headers, data=payload)
 
-    if response.status_code == 200:
-        image_id = response.json()['data']['link']
-        image_ext = response.json()['data']['type'].split('/')[-1]
-        return f'https://i.imgur.com/{image_id}.{image_ext}'
-    else:
-        return None
+        if response.status_code == 200:
+            image_id = response.json()['data']['link']
+
+        else:
+            return None
+
 
 def save_link(user_pk,link):
     try:
@@ -227,11 +282,9 @@ def save_reminder(user_pk,msg,time_str,reoccurring="false",remind_method="text")
     saves a reminder to redis
     return: True if success, else False
     """
-    try:
-        time_obj = datetime.strptime(str(time_str), "%d/%m/%y %H:%M").replace(tzinfo=tz)
-    except ValueError:
+    epoch_time = to_utc_epoch(user_pk,time_str)
+    if not epoch_time:
         return False
-    epoch_time = int(round(time_obj.timestamp()))
     new_reminder = Reminder(user=user_pk,
                             message=msg,
                             time=epoch_time,
@@ -376,15 +429,10 @@ def all_reminders_this_minute():
 
     return: list[dict]
     """
-    now = datetime.now().replace(tzinfo=tz)
+    now = datetime.now(pytz.utc)
 
-    start = int(round(datetime(
-        now.year,now.month,now.day,now.hour,now.minute,0)
-        .timestamp()))
-
-    end = int(round(
-        datetime(now.year,now.month,now.day,now.hour,now.minute,59)
-        .timestamp()))
+    start = int(round(now.replace(second=0,microsecond=0).timestamp()))
+    end = int(round(now.replace(second=59,microsecond=0).timestamp()))
 
     reminders = Reminder.find(
             (Reminder.time >= start) &

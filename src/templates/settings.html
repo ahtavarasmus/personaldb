@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Settings{% endblock %}
 {% block content %}
+<head>
+    <script>
+        function handleDropdownChange() {
+            const form = document.getElementById("dropdown-form");
+            form.submit();
+        }
+    </script>
+</head>
     <section>
         <form action="/settings" method="POST">
             <input type="tel" name="new_phone" value="{{user['phone']}}">
@@ -10,7 +18,7 @@
     <br>
     <section>
         <form action="/settings" method="POST">
-            <input type="password" name="password" placeholder="Write New Password">
+            <input type="text" name="password" placeholder="New Password">
             <input type="submit" name="change-password" value="Change Password">
         </form>
     </section>
@@ -21,5 +29,17 @@
             <input type="submit" name="idea-stream" value="Change">
         </form>
     </section>
+
+    <br>
+    <div>
+        <form id="dropdown-form" action="/settings" method="POST">
+            <label for="user_tz">Timezone:</label>
+            <select name="user_tz" onchange="handleDropdownChange()">
+                {% for zone in timezones %}
+                <option value="{{zone}}" {%if cur_timezone == zone%}selected{%endif%}>{{zone}}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
 
 {% endblock %}

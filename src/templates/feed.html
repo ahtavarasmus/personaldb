@@ -2,6 +2,9 @@
 {% block title %}Feed{% endblock %}
 {% block content %}
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Paste Upload</title>
     <script>
         function handlePaste(e) {
             const clipboardData = e.clipboardData || window.clipboardData;
@@ -24,7 +27,7 @@
 
         function prepareFormData(imgBlob) {
             const formData = new FormData();
-            formData.append("image", imgBlob, "pasted-image.png");
+            formData.append("img", imgBlob, "pasted-image.png");
             document.getElementById("upload-form").onsubmit = (e) => {
                 e.preventDefault();
                 uploadImage(formData);
@@ -38,8 +41,7 @@
             });
 
             if (response.ok) {
-                const data = await response.json();
-                console.log("Image uploaded successfully:", data.url);
+                location.reload(); // Reload the page to display flash messages
             } else {
                 console.error("Failed to upload image");
             }

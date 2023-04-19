@@ -11,6 +11,7 @@ from .utils import *
 from .models import User,Settings,Idea
 from time import sleep
 import json
+import pytz
 import random
 
 tz = timezone(timedelta(hours=2))
@@ -55,6 +56,8 @@ def settings():
 
     
     user = User.find(User.pk == user).first().dict()
+    all_timezones = pytz.all_timezones
+    cur_timezone = user['timezone']
 
     print("User settings",user['settings'])
     if request.method == 'POST':
@@ -70,7 +73,6 @@ def settings():
             u.password = generate_password_hash(str(new_pass),method='sha256')
             u.save()
             flash("Password changed!")
-            return redirect(url_for('routes.settings'))
         elif "idea-stream" in request.form:
             ans = request.form.get('idea-stream')
             if user['settings']['idea_stream_public'] == "true":
@@ -79,18 +81,26 @@ def settings():
                 u.settings.idea_stream_public = "false"
                 u.save()
                 flash('Ideas are now private')
-                return redirect(url_for('routes.settings'))
             else:
                 user['settings']['idea_stream_public'] = "true"
                 u = User.find(User.pk == user['pk']).first()
                 u.settings.idea_stream_public = "true"
                 u.save()
                 flash('Ideas are now public')
-                return redirect(url_for('routes.settings'))
+        elif "user_tz" in request.form:
+            new_timezone = request.form.get('user_tz')
+            user = User.find(User.pk == user['pk']).first()
+            user.timezone = new_timezone
+            user.save()
+            flash("Timezone changed")
+        return redirect(url_for('routes.settings'))
+
         
     
     return render_template('settings.html',
                            user=user,
+                           timezones=all_timezones,
+                           cur_timezone=cur_timezone,
                            page="settings"
                            )
 
@@ -211,10 +221,12 @@ def feed():
 
     if request.method == 'POST':
         if "img" not in request.files:
-            flash("no image found")
-            return redirect(url_for('routes.feed'))
-        img = request.files['img']
-        url = save_image(user, img)
+            img = None
+        else:
+            img = request.files['img']
+        text = request.form['text']
+        url = save_post(user,text,img)
+        print(url)
         if url:
             flash(url)
         else:
@@ -222,7 +234,6 @@ def feed():
         return redirect(url_for('routes.feed'))
     return render_template('feed.html',
                            user=user,
-                           feed=feed(user),
                            page="feed"
                            )
 
@@ -336,17 +347,10 @@ def edit_reminder(pk):
     if request.method == 'POST':
         if 'time' in request.form:
             time = request.form.get('time')
-            try:
-                time_obj = datetime.strptime(str(time),
-                    "%d/%m/%y %H:%M").replace(tzinfo=tz)
-            except ValueError as e:
-                print(e)
-                flash("Date format not right")
-                return render_template('edit_reminder.html',
-                                       user=user,
-                                       message=rem_message_str,
-                                       reminder_pk=pk)
-            epoch_time = int(round(time_obj.timestamp()))
+            epoch_time = to_utc_epoch(user,time)
+            if not epoch_time:
+                flash("Time format not right. Time formatted: 'day/month/year_last_two_nums hour:minute'")
+                return redirect(f"/edit-reminder-{pk}")
             reminder.time = epoch_time
             reminder.save()
             flash("Time changed")
@@ -356,10 +360,13 @@ def edit_reminder(pk):
                 Reminder.delete(pk)
                 flash("Reminder Deleted")
             else: 
-                reminder.message = msg
-                reminder.save()
-                flash("Message changed")
-            return redirect(url_for('routes.reminders'))
+                if reminder.message == msg:
+                    flash("No change")
+                else:
+                    reminder.message = msg
+                    reminder.save()
+                    flash("Message changed")
+        return redirect(url_for('routes.reminders'))
         
     return render_template('edit_reminder.html',
                            user=user,
