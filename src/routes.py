@@ -619,7 +619,7 @@ def sms_webhook():
                 message = "Error. Could not save the reminder"
     elif body.startswith("c "):
         response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You turn the given text into exact same text but with all the letters that are incorrectly 'a' instead of 'ä' or 'o' instead of 'ö', you replace them with the correct ones according to context and finnish language. You don't change the text or words in a text anyway other than replacing 'a' or 'o' letters if necessary. Keep letter capitalization as it is in the original text. Output only the text."},
             {"role": "user", "content": "Tanaan saan pitaisi parantua, joten voimme menna ulkoilemaan metsaan ja kerata sienia seka marjoja ampariin."},
