@@ -135,8 +135,7 @@ def reminders(item_pk=None):
     if request.method == 'POST':
         if "reminder-new" in request.form:  
             msg = request.form['message']
-            time_str = request.form['time']
-            save_reminder(user, msg, time_str)
+            save_reminder_text(user, msg)
             return redirect(url_for('routes.reminders'))
         try:
             reminder = Reminder.find(Reminder.pk == item_pk).first()

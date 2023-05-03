@@ -77,12 +77,13 @@ def to_utc_epoch(user_pk,time_str="now"):
     return epoch_time
 
 
-
-def process_speech(user_pk,user_phone):
-    text_rec = get_latest_recording(user_pk,user_phone)
-
-    #TODO process what the text means here 
-    reminder_format = turn_text_to_reminder_format(text_rec)
+def save_reminder_text(user_pk,reminder_text):
+    """ saves the reminder text as a reminder
+    param user_pk: str, user id
+    param reminder_text: str, reminder text
+    return: bool, True if saved, False if not
+    """
+    reminder_format = turn_text_to_reminder_format(reminder_text)
     if correct_reminder_format(reminder_format):
         t = re.search(r"\d+\/\d+\/\d+",reminder_format)
         t2 = re.search(r"\d+\:\d+",reminder_format)
@@ -101,6 +102,21 @@ def process_speech(user_pk,user_phone):
                     msg += " "+x
 
         save_reminder(user_pk,msg,time)
+        return True
+    return False
+
+
+
+def process_speech(user_pk,user_phone):
+    """ processes the speech to text and saves it as a reminder 
+    param user_pk: str, user id
+    param user_phone: str, user phone number
+    return: bool, True if saved, False if not
+    """
+    text_rec = get_latest_recording(user_pk,user_phone)
+
+    #TODO process what the text means here 
+    if save_reminder_text(user_pk,text_rec):
         return True
     return False
 
