@@ -56,6 +56,16 @@
         </div>
         <button type="submit">Upload</button>
     </form>
+    <div>
+        <h2>Feed</h2>
+        {% for post in posts %}
+
+        <div>
+            <img src="{{post.imgur_url}}" alt="Image">
+            <p>{{post.imgur_url}}</p>
+        </div>
+        {% endfor %}
+    </div>
 </body>
 
 {% endblock %}

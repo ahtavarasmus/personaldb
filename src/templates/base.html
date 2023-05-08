@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>{% block title %}{% endblock %}</title>
+        <meta charset="UTF-8">
     </head>
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -49,7 +50,12 @@
                     <option value="/settings" selected>Settings</option>
                     {% else %}
                     <option value="/settings">Settings</option>
+                    {% endif %}{% if page == "feed" %}
+                    <option value="/feed" selected>Feed</option>
+                    {% else %}
+                    <option value="/feed">Feed</option>
                     {% endif %}
+
 
                 </select>
                 {% else %}

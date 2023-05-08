@@ -240,6 +240,20 @@ def format_notebags(notebags):
 
     return response
 
+def format_posts(posts):
+    response = []
+    for post in posts:
+        post_dict = post.dict()
+
+        new_time = utc_epoch_to_local_datetime(post_dict['user'],post_dict['time'])
+        post_dict['time'] = new_time
+        response.append(post_dict)
+
+    return response
+
+
+
+
 def move_note(user_pk,note_pk,bag_name):
     user = User.find(User.pk == user_pk).first()
     for bag in user.notebags:
@@ -253,7 +267,7 @@ def move_note(user_pk,note_pk,bag_name):
 # --------------- SAVING -------------------------------------------------
 #-------------------------------------------------------------------------
 
-def save_post(user_pk,text,img):
+def save_post(user_pk,img):
     ICI = config.get('IMGUR_CLIENT_ID')
     headers = {'Authorization': f'Client-ID {ICI}'}
     url = 'https://api.imgur.com/3/image'
@@ -264,6 +278,9 @@ def save_post(user_pk,text,img):
 
         if response.status_code == 200:
             image_id = response.json()['data']['link']
+            new_post = Post(user=user_pk,imgur_url=image_id)
+            new_post.save()
+            return image_id
 
         else:
             return None
@@ -506,6 +523,10 @@ def user_all_quotes(user_pk):
 def user_all_links(user_pk):
     links = User.find(User.pk == user_pk).first().links
     return links
+
+def user_all_posts(user_pk):
+    posts = Post.find(Post.user == user_pk).all()
+    return format_posts(posts)
 
 
 # ------------------------ SENDING ---------------------------------

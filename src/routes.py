@@ -223,16 +223,17 @@ def feed():
             img = None
         else:
             img = request.files['img']
-        text = request.form['text']
-        url = save_post(user,text,img)
+        url = save_post(user,img)
         print(url)
         if url:
             flash(url)
         else:
             flash("no url")
         return redirect(url_for('routes.feed'))
+    posts = user_all_posts(user)
     return render_template('feed.html',
                            user=user,
+                           posts=posts,
                            page="feed"
                            )
 
