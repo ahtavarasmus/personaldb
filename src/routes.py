@@ -228,6 +228,7 @@ def feed():
             flash("post uploaded")
         else:
             flash("failed to upload")
+        sleep(2)
         posts = user_all_posts(user)
         return render_template('feed.html',
                            user=user,
