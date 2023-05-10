@@ -282,9 +282,8 @@ def save_post(user_pk,img):
             new_post.save()
             return image_id
 
-        else:
-            return None
 
+    return None
 
 def save_link(user_pk,link):
     try:
@@ -450,6 +449,11 @@ def delete_notebag(user_pk,bag_name):
             return True
 
     return False
+
+def delete_post(post_pk):
+    Post.delete(post_pk)
+    flash("post deleted")
+
 
 
 # --------------- QUERYING -----------------------------------------------

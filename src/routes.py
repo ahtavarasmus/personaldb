@@ -224,11 +224,11 @@ def feed():
         else:
             img = request.files['img']
         url = save_post(user,img)
-        print(url)
-        if url:
-            flash(url)
+        if url is not None:
+            flash("post uploaded")
         else:
-            flash("no url")
+            flash("failed to upload")
+
         return redirect(url_for('routes.feed'))
     posts = user_all_posts(user)
     return render_template('feed.html',
@@ -448,7 +448,9 @@ def delete_item(item_type, item_pk):
         user.save()
         flash("Link deleted")
         return redirect(url_for('routes.links'))
-
+    elif item_type == "post":
+        delete_post(item_pk)
+        return redirect(url_for("routes.feed"))
     return redirect(url_for('routes.home'))
 
 
