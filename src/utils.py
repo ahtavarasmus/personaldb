@@ -249,6 +249,7 @@ def format_posts(posts):
         post_dict['time'] = new_time
         response.append(post_dict)
 
+    response = sorted(response, key=itemgetter('time'), reverse=True)
     return response
 
 
