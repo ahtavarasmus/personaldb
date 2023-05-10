@@ -228,8 +228,14 @@ def feed():
             flash("post uploaded")
         else:
             flash("failed to upload")
+        posts = user_all_posts(user)
+        return render_template('feed.html',
+                           user=user,
+                           posts=posts,
+                           page="feed"
+                           )
 
-        return redirect(url_for('routes.feed'))
+
     posts = user_all_posts(user)
     return render_template('feed.html',
                            user=user,
