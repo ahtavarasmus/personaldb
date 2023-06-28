@@ -36,15 +36,16 @@ def home(item_pk=None):
     #        i.time = int(round(datetime.now().timestamp()))
     #        i.save()
 
-    if request.method == 'POST':
-        return redirect(url_for('routes.home'))
 
+    return redirect(url_for("routes.feed"))
 
+    """
     return render_template('home.html',
                            session=session,
                            user=user,
                            page="home"
                            )
+    """
 
     
 @routes.route("/settings",methods=['POST','GET'])
