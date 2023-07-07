@@ -641,6 +641,19 @@ def sms_webhook():
         )
         message = response["choices"][0]["message"]["content"]
 
+    elif body.startswith("translate "):
+        response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a bot that translates the given text into another language. You are given a text that in one language and if the input language is not given - you should guess it and note about it in the output. If the output language isn't given, you should translate the text into finnish language."},
+            {"role": "user", "content": "translate 'wohnzimmer' to english"},
+            {"role": "assistant", "content": "living room"},
+            {"role": "user","content": f"{body[6:]}"}
+            ]
+        )
+        message = response["choices"][0]["message"]["content"]
+
+
     else:
         message = 'Wrong keyword. Type "h" for help.'
 
