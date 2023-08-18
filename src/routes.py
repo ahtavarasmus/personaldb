@@ -37,15 +37,12 @@ def home(item_pk=None):
     #        i.save()
 
 
-    return redirect(url_for("routes.feed"))
 
-    """
     return render_template('home.html',
                            session=session,
                            user=user,
                            page="home"
                            )
-    """
 
     
 @routes.route("/settings",methods=['POST','GET'])
